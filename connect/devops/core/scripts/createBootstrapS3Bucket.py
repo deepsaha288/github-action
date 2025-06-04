@@ -11,7 +11,7 @@ import os
 import sys
 import traceback
 import logging
-import yaml
+# import yaml
 from time import sleep, gmtime, strftime
 from argparse import ArgumentParser
 import boto3
