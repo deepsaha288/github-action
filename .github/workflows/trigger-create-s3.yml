@@ -1,40 +1,29 @@
-name: S3 Trigger Workflow
+name: Trigger S3 Bucket Creation
 
 on:
   workflow_dispatch:
     inputs:
       S3_BUCKET_NAME:
-        description: 'S3 Bucket Name'
+        description: 'S3 bucket name'
         required: true
       STACK_NAME:
-        description: 'CloudFormation Stack Name'
+        description: 'Stack name'
         required: true
       AWS_REGION:
-        description: 'AWS Region'
+        description: 'AWS region'
         required: true
       KMS_ARN:
-        description: 'KMS ARN'
-        required: true
-      CREDENTIAL_ID:
-        description: 'Not used directly here'
+        description: 'Optional KMS ARN'
         required: false
 
 jobs:
   trigger-create-s3:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger S3 Bucket Creation Workflow
-        uses: peter-evans/workflow-dispatch@v2
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          repository: deepsaha288/webhooks-test
-          workflow: create-s3-bucket.yml
-          ref: main
-          inputs: |
-            {
-              "S3_BUCKET_NAME": "${{ github.event.inputs.S3_BUCKET_NAME }}",
-              "STACK_NAME": "${{ github.event.inputs.STACK_NAME }}",
-              "AWS_REGION": "${{ github.event.inputs.AWS_REGION }}",
-              "KMS_ARN": "${{ github.event.inputs.KMS_ARN }}"
-            }
-
+    uses: ./.github/workflows/create-s3-bucket.yml
+    with:
+      S3_BUCKET_NAME: ${{ github.event.inputs.S3_BUCKET_NAME }}
+      STACK_NAME: ${{ github.event.inputs.STACK_NAME }}
+      AWS_REGION: ${{ github.event.inputs.AWS_REGION }}
+      KMS_ARN: ${{ github.event.inputs.KMS_ARN }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

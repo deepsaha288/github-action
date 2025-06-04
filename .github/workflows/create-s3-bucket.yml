@@ -1,43 +1,52 @@
-name: Create S3 Bucket
+name: Reusable Create S3 Bucket Workflow
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       S3_BUCKET_NAME:
         required: true
+        type: string
       STACK_NAME:
         required: true
+        type: string
       AWS_REGION:
         required: true
+        type: string
       KMS_ARN:
+        required: false
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
         required: true
 
 jobs:
-  create:
+  create-s3:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
-      - name: Install boto3
+      - name: Install dependencies
         run: pip install boto3
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.AWS_REGION }}
 
-      - name: Run S3 Creation Script
+      - name: Run script to create S3 bucket
         run: |
           python connect/devops/core/scripts/createBootstrapS3Bucket.py \
-            --s3BucketName "${{ inputs.S3_BUCKET_NAME }}" \
-            --stackName "${{ inputs.STACK_NAME }}" \
-            --AWSRegion "${{ inputs.AWS_REGION }}" \
-            --KMSEncryptionKeyARN "${{ inputs.KMS_ARN }}"
+            --bucket-name "${{ inputs.S3_BUCKET_NAME }}" \
+            --stack-name "${{ inputs.STACK_NAME }}" \
+            --region "${{ inputs.AWS_REGION }}" \
+            --kms-arn "${{ inputs.KMS_ARN }}"
