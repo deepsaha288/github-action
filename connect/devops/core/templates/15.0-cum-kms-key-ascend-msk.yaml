@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum KMS Key for Ascend MSK integration
+
+Parameters:
+  UserArn:
+    Type: String
+  AscendIamRoleArn:
+    Type: String
+    Default: arn:aws:iam::915898395253:role/task_execution_role
+  SSMKMSKeySSEArnName:
+    Type: String
+  SSMKMSKeyDataArnName:
+    Type: String
+
+
+Resources: 
+  CumMSKKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'Cum-Ascend-MSK-Key is for the corss account sharing MSK key for MSK integration between Ascend & Cumulus'
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-consolepolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:root'
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - !Ref UserArn
+          Action:
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:TagResource
+          - kms:UntagResource
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          - kms:RotateKeyOnDemand
+          Resource: "*"
+        - Sid: Allow use of the key for Ascend ECS
+          Effect: Allow
+          Principal:
+            AWS:
+              - !Ref AscendIamRoleArn
+              - Fn::ImportValue: Role-CumAscendMSKAccessRole
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          Resource: "*"
+          # update Cum-Ascend-MSK-Key ARN in resource, manually after deployment.
+        - Sid: Allow attachment of persistent resources
+          Effect: Allow
+          Principal:
+            AWS:
+              - !Ref UserArn
+          Action:
+          - kms:CreateGrant
+          - kms:ListGrants
+          - kms:RevokeGrant
+          Resource: "*"
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+
+  CumMSKKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/Cum-Ascend-MSK-Key
+      TargetKeyId:
+        Ref: CumMSKKey
+    DependsOn:
+      - CumMSKKey
+
+  SSMKMSKeyDataArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyDataArnName
+      Description: "SSM Parameter for KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumMSKKey,Arn]
+    DependsOn:
+      - CumMSKKey
+
+
+Outputs:
+
+  CumMSKKeyOutput:
+    Description: ARN of Cum MSK Key for Ascend MSK integration
+    Value: !GetAtt [CumMSKKey, Arn]
+    Export:
+      Name: !Sub KMS-Cum-KMS-key-Ascend-MSK

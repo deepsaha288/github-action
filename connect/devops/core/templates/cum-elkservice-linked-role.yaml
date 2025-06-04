@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Service Linked Role for Elastic Search
+    
+Resources:
+  CumServiceLinkedRoleES:
+    Type: AWS::IAM::ServiceLinkedRole
+    Properties:
+      AWSServiceName: es.amazonaws.com
+      # CustomSuffix: cumuluses
+      Description: "Cumulus elastic search service linked role"

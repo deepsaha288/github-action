@@ -1,0 +1,52 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_InfinitePeriodicHandoverCDXLambdaRole
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  InfinitePeriodicHandoverCDXLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/MSK-IAM-Policy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: InfinitePeriodicHandoverCDXLambdaRole
+
+Outputs:
+  InfinitePeriodicHandoverCDXLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [InfinitePeriodicHandoverCDXLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-InfinitePeriodicHandoverCDXLambdaRole"

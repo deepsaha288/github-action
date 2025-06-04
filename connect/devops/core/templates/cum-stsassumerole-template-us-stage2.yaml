@@ -1,0 +1,74 @@
+# Import 
+# ---None
+#
+# Export 
+#   STSAssumeRole
+# Parameters:
+#   IDPProvider
+#   RuleString
+#   STSAssumeRoleSSMKeyName
+#   STSRoleSSMKeyName
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Assumed role for STS.
+
+Parameters:
+  IDPProvider:
+    Type: String
+    #Default: arn:aws:iam::661623416131:oidc-provider/mdtsts-dev.medtronic.com/mmclous
+
+  RuleString:
+    Type: String
+    #Default: 36132ea0-ab8e-4a21-a9a6-bd23a29c69a9
+
+  RoleName:
+    Type: String
+    #Default: mdt-sts-assume-role
+
+  STSRoleSSMKeyName:
+    Type: String
+    #Default: sts_role
+
+Resources:
+  STSAssumeRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: !Ref IDPProvider
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            ForAnyValue:StringEquals:
+              mdtsts-stg.medtronic.com/mmcl:aud:
+                Fn::Split:
+                - ','
+                - !Ref RuleString
+      RoleName: !Ref RoleName
+
+
+  CumSTSRoleSSM:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref STSRoleSSMKeyName
+      Description: "SSM Parameter for STS Assume Role"
+      Type: "String"
+      Value: !GetAtt [STSAssumeRole,Arn]
+    DependsOn:
+      - STSAssumeRole 
+
+
+Outputs:
+  STSAssumeRole:
+    Description: The ARN of Assume Role for accessing STS
+    Value: !GetAtt [STSAssumeRole,Arn]
+    Export:
+      Name: !Sub "Role-STSAssumeRoleArn"
+
+

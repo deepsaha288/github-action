@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Roles for SNSSuccessFeedback and SNSFailureFeedback
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  SNSSuccessFeedback:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonSNSRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - sns.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SNSSuccessFeedback
+      Description: Allows SNS to call CloudWatch Logs
+
+  SNSFailureFeedback:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonSNSRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - sns.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SNSFailureFeedback
+      Description: Allows SNS to call CloudWatch Logs
+
+Outputs:
+  CumRoleSNSSuccessFeedback:
+    Description: The ARN of Cumulus Role SNSSuccessFeedback
+    Value: !GetAtt [SNSSuccessFeedback,Arn]
+    Export:
+      Name: !Sub "Role-SNSSuccessFeedback"
+
+  CumRoleSNSFailureFeedback:
+    Description: The ARN of Cumulus Role SNSFailureFeedback
+    Value: !GetAtt [SNSFailureFeedback,Arn]
+    Export:
+      Name: !Sub "Role-SNSFailureFeedback"

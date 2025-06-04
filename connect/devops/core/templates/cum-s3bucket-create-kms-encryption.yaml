@@ -1,0 +1,50 @@
+#Import
+#
+#Export
+#BucketName
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum S3 Bucket Creation
+
+Parameters:
+  BucketName:
+    Type: String
+    # Default: Cum-S3-Bucket
+  ExportName:
+    Type: String
+    #Default: BucketName
+  SSMKey:
+    Type: String
+  KeyName:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+
+Resources:
+  S3BucketInstance:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          -
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref KeyName
+              SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+
+  SSM:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Type: "String"
+      Name: !Ref SSMKey
+      Value: !Ref BucketName
+
+Outputs:  
+  S3Bucket:
+    Value: !Ref BucketName
+    Export:
+      Name: !Ref ExportName

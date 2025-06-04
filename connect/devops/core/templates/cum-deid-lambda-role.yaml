@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for CumAPIUserDeidentifier lambda
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+Resources:
+  CumDIDLambdaPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Path: "/"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 
+            Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/CumAPIUserDeidentifier:*"
+      Roles:
+        - Ref: "CumRoleDIDLambdaAccess"
+      ManagedPolicyName: CumDIDLambdaPolicy
+
+  CumRoleDIDLambdaAccess:
+    Type: "AWS::IAM::Role"
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CumDIDLambdaAccessRole
+
+Outputs:
+  CumRoleDIDLambdaAccess:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [CumRoleDIDLambdaAccess,Arn]
+    Export:
+      Name: !Sub "Role-CumRoleDIDLambdaAccess"

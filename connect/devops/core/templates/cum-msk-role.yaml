@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for kinesis firehose.
+# Parameters:
+#   AWSRegion:
+#     Type: String
+#   PrivateDnsEnabled:
+#     Type: String
+#   VpcId:
+#     Type: String
+#   SubnetIds:
+#     Type: String
+
+Resources:
+  # CumMSKPolicy:
+  #   Type: AWS::IAM::ManagedPolicy
+  #   Properties: 
+  #     Path: "/"
+  #     ManagedPolicyName: MSKRolePolicy
+  #     PolicyDocument: 
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Sid: VisualEditor0
+  #         Effect: Allow
+  #         Action: 
+  #         - ec2:CreateNetworkInterface
+  #         - ec2:DescribeNetworkInterfaces
+  #         - ec2:CreateNetworkInterfacePermission
+  #         - ec2:AttachNetworkInterface
+  #         - ec2:DeleteNetworkInterface
+  #         - ec2:DetachNetworkInterface
+  #         - acm-pca:GetCertificateAuthorityCertificate
+  #         - secretsmanager:ListSecrets
+  #         Resource: "*"
+  #       - Sid: VisualEditor1
+  #         Effect: Allow
+  #         Action:
+  #         - secretsmanager:GetResourcePolicy
+  #         - secretsmanager:PutResourcePolicy
+  #         - secretsmanager:DeleteResourcePolicy
+  #         - secretsmanager:DescribeSecret
+  #         Resource: "*"
+  #         Condition:
+  #           ArnLike:
+  #             'secretsmanager:SecretId' : 'arn:*:secretsmanager:*:*:secret:AmazonMSK_*'
+  #     Roles:
+  #       - Ref: "CumMSKRole"
+
+
+  CumMSKPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: MSK-IAM-Policy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+          - kafka:UpdateClusterKafkaVersion
+          - kafka:UpdateBrokerCount
+          - kafka:DescribeConfiguration
+          - kafka:UpdateConnectivity
+          - kafka:ListScramSecrets
+          - kafka:ListKafkaVersions
+          - kafka:GetBootstrapBrokers
+          - kafka-cluster:DescribeTransactionalId
+          - kafka-cluster:AlterTransactionalId
+          - kafka:RebootBroker
+          - kafka:UpdateMonitoring
+          - kafka:UpdateSecurity
+          - kafka-cluster:CreateTopic
+          - kafka-cluster:AlterCluster
+          - kafka:UpdateBrokerType
+          - kafka-cluster:Connect
+          - kafka-cluster:DeleteTopic
+          - kafka:DescribeCluster
+          - kafka-cluster:ReadData
+          - kafka:BatchAssociateScramSecret
+          - kafka:ListClustersV2
+          - kafka:DescribeClusterOperation
+          - kafka:ListNodes
+          - kafka:DeleteCluster
+          - kafka:CreateConfiguration
+          - kafka:DeleteConfiguration
+          - kafka:UpdateClusterConfiguration
+          - kafka:ListClusters
+          - kafka:CreateClusterV2
+          - kafka:UpdateBrokerStorage
+          - kafka:DescribeClusterV2
+          - kafka-cluster:DescribeTopicDynamicConfiguration
+          - kafka-cluster:AlterTopicDynamicConfiguration
+          - kafka-cluster:AlterGroup
+          - kafka:ListConfigurationRevisions
+          - kafka-cluster:AlterClusterDynamicConfiguration
+          - kafka-cluster:DescribeGroup
+          - kafka-cluster:DescribeClusterDynamicConfiguration
+          - kafka-cluster:DeleteGroup
+          - kafka:TagResource
+          - kafka:ListTagsForResource
+          - kafka:CreateCluster
+          - kafka:GetCompatibleKafkaVersions
+          - kafka:DescribeConfigurationRevision
+          - kafka-cluster:WriteDataIdempotently
+          - kafka-cluster:DescribeCluster
+          - kafka:UpdateConfiguration
+          - kafka:ListConfigurations
+          - kafka:BatchDisassociateScramSecret
+          - kafka-cluster:AlterTopic
+          - kafka-cluster:DescribeTopic
+          - kafka:UntagResource
+          - kafka-cluster:WriteData
+          - kafka:ListClusterOperations
+          Resource: "*"          
+      # Roles:
+      #   - CumLambdaAccessRole
+
+
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Sid": "VisualEditor3",
+#             "Effect": "Allow",
+#             "Action": "sts:AssumeRole",
+#             "Resource": "arn:aws:iam::661623416131:role/cumulus-dev-mdt-kafka-migrate-poc-ec2-client-role"
+#         },
+#         {
+#             "Sid": "VisualEditor0",
+#             "Effect": "Allow",
+#             "Action": [
+#                 "kafka-cluster:DescribeCluster",
+#                 "kafka-cluster:AlterCluster",
+#                 "kafka-cluster:Connect"
+#             ],
+#             "Resource": "arn:aws:kafka:eu-central-1:661623416131:cluster/*/*"
+#         },
+#         {
+#             "Sid": "VisualEditor1",
+#             "Effect": "Allow",
+#             "Action": [
+#                 "kafka-cluster:*Topic*",
+#                 "kafka-cluster:ReadData",
+#                 "kafka-cluster:WriteData"
+#             ],
+#             "Resource": "arn:aws:kafka:eu-central-1:661623416131:topic/*/*/*"
+#         },
+#         {
+#             "Sid": "VisualEditor2",
+#             "Effect": "Allow",
+#             "Action": [
+#                 "kafka-cluster:AlterGroup",
+#                 "kafka-cluster:DescribeGroup"
+#             ],
+#             "Resource": "arn:aws:kafka:eu-central-1:661623416131:group/*/*/*"
+#         }
+#     ]
+# }
+
+
+
+
+
+
+
+  # CumMSKRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties:
+  #     RoleName: CumMSKRole
+  #     AssumeRolePolicyDocument: 
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - kafka.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+
+  # CumMSKRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties:
+  #     RoleName: CumMSKRole1
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/aws-service-role/KafkaServiceRolePolicy
+  #     AssumeRolePolicyDocument: 
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - kafka.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: /service-role/
+
+
+# Outputs:
+#   CumMSKRole:
+#     Description: The ARN of Cumulus Role for MSK
+#     Value: !GetAtt [CumMSKRole,Arn]
+#     Export:
+#       Name: !Sub "Role-CumMSKRole"

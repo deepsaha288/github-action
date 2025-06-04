@@ -1,0 +1,227 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_DiscoverLambdaRole
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+
+  # UDMCreationLambdaRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/MSK-IAM-Policy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: UDMCreationLambdaRole
+
+  # PushPassthroughLambdaRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: PushPassthroughLambdaRole
+
+  # S3ReadBulkPushGathererLambdaRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+  #       - !Sub 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: S3ReadBulkPushGathererLambdaRole
+
+  # S3ReadBulkPushProcessorLambdaRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+  #       - !Sub 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: S3ReadBulkPushProcessorLambdaRole
+
+  # PeriodicPacketInactivityDetectorRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: PeriodicPacketInactivityDetectorRole
+
+  # CpToPatientDetailsRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties: 
+  #     ManagedPolicyArns:
+  #       - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+  #       - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action: sts:AssumeRole
+  #     Path: "/"
+  #     RoleName: CpToPatientDetailsRole
+
+
+  PatientPreferenceInitiatorRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PatientPreferenceInitiatorRole
+
+
+Outputs:
+
+  # UDMCreationLambdaRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [UDMCreationLambdaRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-UDMCreationLambdaRole"
+
+  # PushPassthroughLambdaRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [PushPassthroughLambdaRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-PushPassthroughLambdaRole"
+
+  # S3ReadBulkPushGathererLambdaRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [S3ReadBulkPushGathererLambdaRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-S3ReadBulkPushGathererLambdaRole"
+
+  # S3ReadBulkPushProcessorLambdaRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [S3ReadBulkPushProcessorLambdaRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-S3ReadBulkPushProcessorLambdaRole"
+
+  # PeriodicPacketInactivityDetectorRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [PeriodicPacketInactivityDetectorRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-PeriodicPacketInactivityDetectorRole"
+
+  # CpToPatientDetailsRole:
+  #   Description: The ARN of Cumulus Role for Lambda Executor
+  #   Value: !GetAtt [CpToPatientDetailsRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-CpToPatientDetailsRole"
+
+  PatientPreferenceInitiatorRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PatientPreferenceInitiatorRole,Arn]
+    Export:
+      Name: !Sub "Role-PatientPreferenceInitiatorRole"

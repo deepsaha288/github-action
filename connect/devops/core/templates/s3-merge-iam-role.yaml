@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for kinesis firehose.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+
+  StepFunctionCloudWatchPermissionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: StepFunctionCloudWatchPermission
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+
+        - Effect: Allow
+          Action:
+          - logs:CreateLogDelivery
+          - logs:CreateLogStream
+          - logs:GetLogDelivery
+          - logs:UpdateLogDelivery
+          - logs:DeleteLogDelivery
+          - logs:ListLogDeliveries
+          - logs:PutLogEvents
+          - logs:PutResourcePolicy
+          - logs:DescribeResourcePolicies
+          - logs:DescribeLogGroups
+          Resource: "*"
+
+      Roles:
+        - Ref: "S3FileMergeStepFunctionIAMRole"
+
+  S3FileMergeStepFunctionIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: S3FileMergeStepFunctionIAMRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+        - arn:aws:iam::aws:policy/AWSXrayFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - states.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+  AWSEventInvokeStepFunctionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: AWSEventInvokeStepFunctionsPolicy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+
+        - Effect: Allow
+          Action:
+          - states:StartExecution
+          Resource: "*"
+
+      Roles:
+        - Ref: "AWSEventInvokeStepFunctions"
+
+  AWSEventInvokeStepFunctions:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: AWSEventInvokeStepFunctions
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - events.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+
+
+Outputs:
+  S3FileMergeStepFunctionIAMRoleOutput:
+    Description: The ARN of Cumulus S3FileMergeStepFunctionIAMRole
+    Value: !GetAtt [S3FileMergeStepFunctionIAMRole,Arn]
+    Export:
+      Name: !Sub "Role-S3FileMergeStepFunctionIAMRole"
+
+  AWSEventInvokeStepFunctionsOutput:
+    Description: The ARN of Cumulus AWSEventInvokeStepFunctions
+    Value: !GetAtt [AWSEventInvokeStepFunctions,Arn]
+    Export:
+      Name: !Sub "Role-AWSEventInvokeStepFunctions"

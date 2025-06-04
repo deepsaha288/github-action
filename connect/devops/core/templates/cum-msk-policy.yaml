@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for MSK.
+Parameters:
+  MSKClusterARN:
+    Type: String
+  MSKClusterName:
+    Type: String
+  EnableExternalAccess:
+    Type: String
+    AllowedValues:
+      - "true"
+      - "false"
+Conditions:
+  IsExternalAccessRequired: !Equals
+    - !Ref EnableExternalAccess
+    - "true"
+
+Resources:
+  CumMSKPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: MSK-IAM-Policy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+          - kafka:UpdateClusterKafkaVersion
+          - kafka:UpdateBrokerCount
+          - kafka:DescribeConfiguration
+          - kafka:UpdateConnectivity
+          - kafka:ListScramSecrets
+          - kafka:ListKafkaVersions
+          - kafka:GetBootstrapBrokers
+          - kafka-cluster:DescribeTransactionalId
+          - kafka-cluster:AlterTransactionalId
+          - kafka:RebootBroker
+          - kafka:UpdateMonitoring
+          - kafka:UpdateSecurity
+          - kafka-cluster:CreateTopic
+          - kafka-cluster:AlterCluster
+          - kafka:UpdateBrokerType
+          - kafka-cluster:Connect
+          - kafka-cluster:DeleteTopic
+          - kafka:DescribeCluster
+          - kafka-cluster:ReadData
+          - kafka:BatchAssociateScramSecret
+          - kafka:ListClustersV2
+          - kafka:DescribeClusterOperation
+          - kafka:ListNodes
+          - kafka:DeleteCluster
+          - kafka:CreateConfiguration
+          - kafka:DeleteConfiguration
+          - kafka:UpdateClusterConfiguration
+          - kafka:ListClusters
+          - kafka:CreateClusterV2
+          - kafka:UpdateBrokerStorage
+          - kafka:DescribeClusterV2
+          - kafka-cluster:DescribeTopicDynamicConfiguration
+          - kafka-cluster:AlterTopicDynamicConfiguration
+          - kafka-cluster:AlterGroup
+          - kafka:ListConfigurationRevisions
+          - kafka-cluster:AlterClusterDynamicConfiguration
+          - kafka-cluster:DescribeGroup
+          - kafka-cluster:DescribeClusterDynamicConfiguration
+          - kafka-cluster:DeleteGroup
+          - kafka:TagResource
+          - kafka:ListTagsForResource
+          - kafka:CreateCluster
+          - kafka:GetCompatibleKafkaVersions
+          - kafka:DescribeConfigurationRevision
+          - kafka-cluster:WriteDataIdempotently
+          - kafka-cluster:DescribeCluster
+          - kafka:UpdateConfiguration
+          - kafka:ListConfigurations
+          - kafka:BatchDisassociateScramSecret
+          - kafka-cluster:AlterTopic
+          - kafka-cluster:DescribeTopic
+          - kafka:UntagResource
+          - kafka-cluster:WriteData
+          - kafka:ListClusterOperations
+          Resource: "*"
+      Roles:
+        - CumLambdaAccessRole
+
+
+  CumMSKExternalPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: IsExternalAccessRequired
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: MSK-External-Access-Policy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+          - kafka-cluster:Connect
+          - kafka-cluster:DescribeCluster
+          - kafka-cluster:AlterCluster
+          - kafka-cluster:DescribeClusterDynamicConfiguration
+          Resource:
+          - Fn::Sub: '${MSKClusterARN}'
+        - Sid: VisualEditor1
+          Effect: Allow
+          Action:
+          - kafka-cluster:*Topic*
+          - kafka-cluster:ReadData
+          Resource:
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/*'
+        - Sid: VisualEditor2
+          Effect: Allow
+          Action:
+          - kafka-cluster:AlterGroup
+          - kafka-cluster:DescribeGroup
+          Resource:
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:group/${MSKClusterName}/*'
+      Roles:
+        - Ref: CumMSKExternalAccessRole
+
+
+  CumMSKExternalAccessRole:
+    Type: "AWS::IAM::Role"
+    Condition: IsExternalAccessRequired
+    Properties: 
+      Path: "/"
+      RoleName: MSKExternalAccessRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+        - arn:aws:iam::aws:policy/AmazonMSKFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaMSKExecutionRole
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:            
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole

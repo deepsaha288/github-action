@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for kinesis firehose.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  CumKinesisFirehosePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: GCGZKinesisFirehosePolicy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+
+        - Sid: GetSecretValue
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+          - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+
+        - Sid: DecryptSecretWithKMSKey
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          Resource: 
+          - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          Condition:
+            StringEquals:
+              'kms:ViaService' : !Sub 'secretsmanager.${AWS::Region}.amazonaws.com'
+
+        - Sid: DataFormatConversion
+          Effect: Allow
+          Action:
+          - glue:GetTable
+          - glue:GetTableVersion
+          - glue:GetTableVersions
+          Resource: "*"
+
+        - Sid: mskSourcePermissions
+          Effect: Allow
+          Action:
+          - kafka:GetBootstrapBrokers
+          - kafka:DescribeCluster
+          - kafka:DescribeClusterV2
+          - kafka-cluster:Connect
+          Resource:
+          - !Sub 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:cluster/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+
+        - Sid: toReadMSKData
+          Effect: Allow
+          Action:
+          - kafka-cluster:DescribeTopic
+          - kafka-cluster:DescribeTopicDynamicConfiguration
+          - kafka-cluster:ReadData
+          Resource: 
+          - !Sub 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+
+        - Sid: toDescribeMSKGroup
+          Effect: Allow
+          Action:
+          - kafka-cluster:DescribeGroup
+          Resource: 
+          - !Sub 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:group/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/*'
+
+        - Sid: s3Permissions
+          Effect: Allow
+          Action:
+          - s3:AbortMultipartUpload
+          - s3:GetBucketLocation
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:ListBucketMultipartUploads
+          - s3:PutObject
+          Resource: "*"
+
+        - Sid: lambdaProcessing
+          Effect: Allow
+          Action:
+          - lambda:InvokeFunction
+          - lambda:GetFunctionConfiguration
+          Resource: "*"
+
+        - Sid: s3Encryption
+          Effect: Allow
+          Action:
+          - kms:GenerateDataKey
+          - kms:Decrypt
+          Resource: "*"
+          Condition:
+            StringEquals:
+              'kms:ViaService' : !Sub 's3.${AWS::Region}.amazonaws.com'
+            StringLike:
+              'kms:EncryptionContext:aws:s3:arn' : 
+              - 'arn:aws:s3:::%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/*'
+              - 'arn:aws:s3:::%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+              
+        - Sid: cloudWatchLog
+          Effect: Allow
+          Action:
+          - logs:PutLogEvents
+          Resource: "*"
+
+        - Sid: KDSSourcePermissions
+          Effect: Allow
+          Action:
+          - kinesis:DescribeStream
+          - kinesis:GetShardIterator
+          - kinesis:GetRecords
+          - kinesis:ListShards
+          Resource: "*"
+
+        - Sid: KDSEncryption
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          Resource: 
+          - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          Condition:
+            StringEquals:
+              'kms:ViaService' : !Sub 'kinesis.${AWS::Region}.amazonaws.com'
+            StringLike:
+              'kms:EncryptionContext:aws:kinesis:arn' : 
+              - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/*'
+
+      Roles:
+        - Ref: "GCGZKinesisFirehoseRole"
+
+
+  GCGZKinesisFirehoseRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: GCGZKinesisFirehoseRole
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - firehose.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+
+Outputs:
+  GCGZKinesisFirehoseRoleOutput:
+    Description: The ARN of Cumulus GC GZ Role for Kinesis Firehose
+    Value: !GetAtt [GCGZKinesisFirehoseRole,Arn]
+    Export:
+      Name: !Sub "Role-GCGZKinesisFirehoseRole"

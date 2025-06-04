@@ -1,0 +1,235 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates 2 SecurityGroups "CumSGALB", "CumSGSNPProcessor" used for ALB and Snp Springboot Application
+Parameters:
+  VpcId:
+    Type: String
+    # Default: vpc-0a0928150b4e2e1a0
+    # For VpcId Contact CCOE for Dev - vpc-0a0928150b4e2e1a0
+  JenkinsNodeCIDR:
+    Type: String
+
+Resources:
+
+  CumSGALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      GroupName: CumSGALB
+      Tags:
+        - Key: Name
+          Value: CumSGALB
+        - Key: config-exception
+          Value: security_group
+      VpcId: !Ref VpcId
+
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0 # Internet access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.161.202.32/27
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          #CidrIp: 10.161.226.0/26 # CDX IP access
+          CidrIp: !Ref JenkinsNodeCIDR # CDX IP access
+
+        -
+          Description: Jenkins Firewall Access to Elastic Search
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.51.40.131/32 #Jenkins Firewall
+
+      SecurityGroupEgress:
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIpv6: '::/0'
+
+  CumSGSNPProcessor:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Snapshot processor cluster
+      GroupName: CumSGSNPProcessor
+      Tags:
+        - Key: Name
+          Value: CumSGSNPProcessor
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.160.221.0/26 # VPN
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.176.142.0/24 # New Cumulus VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.161.202.32/27
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          #CidrIp: 10.161.226.0/26 # CDX IP access
+          CidrIp: !Ref JenkinsNodeCIDR # CDX IP access
+
+        -
+          Description: Jenkins Firewall Access to Elastic Search
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.51.40.131/32 #Jenkins Firewall
+            
+      SecurityGroupEgress:
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: "0.0.0.0/0"
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIpv6: '::/0'
+
+# Inbound outbound rules for ALB SG
+  InboundRuleALB2SNPProcessor:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGSNPProcessor
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGALB
+        - GroupId
+
+  InboundRuleSNPProcessor2Self:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGSNPProcessor
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGSNPProcessor
+        - GroupId
+
+  InboundRuleSNPProcessor2AppBroker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !ImportValue SG-CumSGAppBroker
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGSNPProcessor
+        - GroupId
+
+#   OutboundRuleSNPProcessor2Data:
+#     Type: AWS::EC2::SecurityGroupEgress
+#     Properties:
+#       GroupId:
+#         Fn::GetAtt:
+#         - CumSGSNPProcessor
+#         - GroupId
+#       IpProtocol: -1
+#       FromPort: -1
+#       ToPort: -1
+#       DestinationSecurityGroupId: 
+#         Fn::ImportValue: SG-CumSGData
+
+#   OutboundRuleSNPProcessor2AppBroker:
+#     Type: AWS::EC2::SecurityGroupEgress
+#     Properties:
+#       GroupId:
+#         Fn::GetAtt:
+#         - CumSGSNPProcessor
+#         - GroupId
+#       IpProtocol: -1
+#       FromPort: -1
+#       ToPort: -1
+#       DestinationSecurityGroupId: 
+#         Fn::ImportValue: SG-CumSGAppBroker
+
+#   OutboundRuleSNPProcessor2ZK:
+#     Type: AWS::EC2::SecurityGroupEgress
+#     Properties:
+#       GroupId:
+#         Fn::GetAtt:
+#         - CumSGSNPProcessor
+#         - GroupId
+#       IpProtocol: -1
+#       FromPort: -1
+#       ToPort: -1
+#       DestinationSecurityGroupId: 
+#         Fn::ImportValue: SG-CumSGZK
+
+# # ALB to Snp processor cluster
+#   OutboundRuleALB2SNPProcessor:
+#     Type: AWS::EC2::SecurityGroupEgress
+#     Properties:
+#       GroupId:
+#         Fn::GetAtt:
+#         - CumSGALB
+#         - GroupId
+#       IpProtocol: -1
+#       FromPort: -1
+#       ToPort: -1
+#       DestinationSecurityGroupId: 
+#         Fn::GetAtt:
+#         - CumSGSNPProcessor
+#         - GroupId
+
+
+
+Outputs:
+
+  CumSGALB:
+    Description: The ID of CumSGALB
+    Value: !Ref CumSGALB
+    Export:
+      Name: !Sub SG-CumSGALB
+
+  CumSGSNPProcessor:
+    Description: The ID of CumSGSNPProcessor
+    Value: !Ref CumSGSNPProcessor
+    Export:
+      Name: !Sub SG-CumSGSNPProcessor

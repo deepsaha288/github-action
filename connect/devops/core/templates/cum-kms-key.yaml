@@ -1,0 +1,138 @@
+# Input Parameters
+#   UserArn
+#   SSMKMSKeyArnName
+#
+# Import
+#   Role-CumRoleLambdaAccess
+#
+# Export
+#   KMS-CumKmsKey
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum KMS Keys
+Parameters:
+  UserArn:
+    Type: String
+    # Default: arn:aws:iam::661623416131:user/CumulusDev-AWScli-ProgAccess
+
+  # Parameters for SSM
+  SSMKMSKeySSEArnName:
+    Type: String
+    # Default: "kms.key.sse.arn"
+  SSMKMSKeyDataArnName:
+    Type: String
+    # Default: "kms.key.data.arn"
+
+Resources:  
+# cumulus - KMS Keys - Periodic Packet
+  CumKmsKey:
+    # DeletionPolicy: Retain
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Cum KMS Key
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-consolepolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserArn
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-SecurityAuditor'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-CloudAdmin'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/CumulusAdminRO'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/CumulusAdminRW'
+              # - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/CumulusAthenaRW'
+              # - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/CumulusAthenaRO'
+              # - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/service-role/AWSGlueServiceRole-cmm-crawler'
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Dome9 Permissions
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-Dome9-ReadOnly'
+          Action: 
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          Resource: "*"
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS: 
+              Fn::ImportValue: Role-CumRoleLambdaAccess
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          - elasticsearch:ListTags
+          Resource: "*"
+        - Sid: Allow attachment of persistent resources
+          Effect: Allow
+          Principal:
+            AWS: 
+              Fn::ImportValue: Role-CumRoleLambdaAccess
+          Action:
+          - kms:CreateGrant
+          - kms:ListGrants
+          - kms:RevokeGrant
+          Resource: "*"
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+
+# KMS Keys - Periodic Packet - Alias
+  CumKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/Cum-kms-key
+      TargetKeyId:
+        Ref: CumKmsKey       
+    DependsOn:
+      - CumKmsKey  
+
+  # Description: "Create KMS Key ARN SSM Parameter"
+  SSMKMSKeySSEArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeySSEArnName
+      Description: "SSM Parameter for KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumKmsKey,Arn] 
+    DependsOn: 
+      - CumKmsKey
+
+  # Description: "Create KMS Key ARN SSM Parameter"
+  SSMKMSKeyDataArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyDataArnName
+      Description: "SSM Parameter for KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumKmsKey,Arn] 
+    DependsOn: 
+      - CumKmsKey
+
+
+Outputs:
+  # KmsKeyPpOutput:
+  CumKmsKeyOutput:
+    Description: ARN of Cum - KMS Key - Periodic Packet  
+    Value: !GetAtt [CumKmsKey, Arn] 
+    Export:
+      Name: !Sub KMS-CumKmsKey
+

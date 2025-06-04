@@ -1,0 +1,89 @@
+# Input Parameters
+#   UserArn
+#   SSMKMSKeyArnName
+#
+# Import
+#   Role-CumRoleLambdaAccess
+#
+# Export
+#   KMS-CumKmsKey
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum KMS Keys for S3 Encryption
+Parameters:
+  UserArn:
+    Type: String
+    # Default: arn:aws:iam::661623416131:user/CumulusDev-AWScli-ProgAccess
+
+  # Parameters for SSM
+  SSMKMSKeyArnName:
+    Type: String
+    # Default: "kms_key_s3_encrypt_arn"
+
+Resources:  
+# cumulus - KMS Keys - Periodic Packet
+  CumKmsKey:
+    # DeletionPolicy: Retain
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Cum KMS Key
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-consolepolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserArn
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-SecurityAuditor'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-CloudAdmin'
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Dome9 Permissions
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-Dome9-ReadOnly'
+          Action: 
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          Resource: "*"
+
+# KMS Keys - Periodic Packet - Alias
+  CumKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/Cum-kms-key-s3
+      TargetKeyId:
+        Ref: CumKmsKey       
+    DependsOn:
+      - CumKmsKey  
+
+  # Description: "Create KMS Key ARN SSM Parameter"
+  SSMKMSKeyArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyArnName
+      Description: "SSM Parameter for s3 encryption KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumKmsKey,Arn] 
+    DependsOn: 
+      - CumKmsKey
+
+Outputs:
+  CumKmsKeys3Output:
+    Description: ARN of Cum - KMS Key - Periodic Packet  
+    Value: !GetAtt [CumKmsKey, Arn] 
+    Export:
+      Name: !Sub KMS-CumKmsKey-s3
+

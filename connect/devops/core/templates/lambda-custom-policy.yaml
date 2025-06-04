@@ -1,0 +1,484 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  CustomKMSSignOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - kms:Sign
+          Resource: "*"
+      ManagedPolicyName: CustomKMSSignOnly
+
+  CustomCloudWatchAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+            - iam:GetPolicyVersion
+            - logs:GetLogRecord
+            - cloudwatch:PutMetricData
+            - logs:DeleteSubscriptionFilter
+            - events:EnableRule
+            - cloudwatch:DeleteAlarms
+            - autoscaling:DescribePolicies
+            - logs:DescribeSubscriptionFilters
+            - logs:StartQuery
+            - iam:CreateRole
+            - sns:Unsubscribe
+            - iam:AttachRolePolicy
+            - logs:DescribeMetricFilters
+            - logs:CreateLogStream
+            - autoscaling:DescribeAutoScalingGroups
+            - iam:ListAttachedRolePolicies
+            - logs:CancelExportTask
+            - logs:DeleteRetentionPolicy
+            - logs:GetLogEvents
+            - events:ListRules
+            - sns:Subscribe
+            - logs:FilterLogEvents
+            - sns:ListTagsForResource
+            - iam:GetRole
+            - events:DescribeRule
+            - iam:GetPolicy
+            - sns:CreateTopic
+            - logs:StopQuery
+            - cloudwatch:GetMetricStatistics
+            - logs:CreateLogGroup
+            - cloudtrail:DescribeTrails
+            - logs:PutMetricFilter
+            - logs:DescribeExportTasks
+            - logs:GetQueryResults
+            - application-autoscaling:DescribeScalingPolicies
+            - cloudwatch:DescribeAlarms
+            - cloudwatch:GetMetricStream
+            - logs:PutSubscriptionFilter
+            - sns:DeleteTopic
+            - cloudwatch:GetMetricData
+            - logs:DescribeLogStreams
+            - events:PutRule
+            - sns:ListTopics
+            - sns:SetTopicAttributes
+            - cloudwatch:ListMetrics
+            - logs:DeleteLogStream
+            - logs:CreateExportTask
+            - logs:DeleteMetricFilter
+            - sns:Publish
+            - cloudwatch:DescribeAlarmHistory
+            - cloudwatch:DeleteMetricStream
+            - es:DescribeElasticsearchDomains
+            - events:DisableRule
+            - logs:DescribeQueries
+            - sns:GetTopicAttributes
+            - logs:DescribeLogGroups
+            - logs:DeleteLogGroup
+            - iam:ListRoles
+            - logs:TestMetricFilter
+            - sns:ListSubscriptions
+            - logs:PutLogEvents
+            - cloudwatch:PutMetricStream
+            - events:DeleteRule
+            - cloudwatch:PutMetricAlarm
+            - es:ListDomainNames
+            - iam:CreateServiceLinkedRole
+            - cloudwatch:ListMetricStreams
+            - logs:PutRetentionPolicy
+            - logs:GetLogGroupFields
+          Resource: "*"
+      ManagedPolicyName: CustomCloudWatchAccess 
+
+  CustomAPIGWInvokeAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - execute-api:Invoke
+            - execute-api:ManageConnections
+          Resource: "*"
+      ManagedPolicyName: CustomAPIGWInvokeAccess 
+
+  CustomS3WriteAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - s3:PutObject
+            - s3:GetObject
+            - s3:AbortMultipartUpload
+            - s3:ListBucket
+            - s3:DeleteObject
+            - s3:GetObjectVersion
+            - s3:GetObjectAcl
+            - s3:DeleteObjectVersion
+            - s3:ListMultipartUploadParts
+          Resource: "*"
+      ManagedPolicyName: CustomS3WriteAccess
+
+  CustomKMSEncryptOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - kms:GetPublicKey
+            - kms:UntagResource
+            - kms:GenerateRandom
+            - kms:ListResourceTags
+            - kms:GetParametersForImport
+            - kms:DescribeCustomKeyStores
+            - kms:TagResource
+            - kms:Encrypt
+            - kms:Decrypt
+            - kms:GetKeyRotationStatus
+            - kms:ReEncryptTo
+            - kms:DescribeKey
+            - kms:CreateKey
+            - kms:CreateGrant
+            - kms:ListKeyPolicies
+            - kms:ListRetirableGrants
+            - kms:GetKeyPolicy
+            - iam:ListRoles
+            - kms:ReEncryptFrom
+            - kms:ListGrants
+            - kms:ListKeys
+            - kms:ListAliases
+            - kms:GenerateDataKey
+            - kms:CreateAlias
+            - iam:ListUsers
+            - iam:ListGroups
+            - kms:DeleteAlias
+          Resource: "*"
+      ManagedPolicyName: CustomKMSEncryptOnly
+
+  CustomDDBWriteOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - dynamodb:BatchWriteItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource: "*"
+      ManagedPolicyName: CustomDDBWriteOnly
+
+  CustomDDBDeleteOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - dynamodb:DeleteItem
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource: "*"
+      ManagedPolicyName: CustomDDBDeleteOnly
+
+  CustomDDBReadOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - dynamodb:BatchGetItem
+            - dynamodb:DescribeTable
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+            - dynamodb:GetRecords
+            - dynamodb:PutItem
+          Resource: "*"
+      ManagedPolicyName: CustomDDBReadOnly
+
+  CustomKMSDecryptOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - kms:GetPublicKey
+            - kms:Decrypt
+            - kms:ListKeyPolicies
+            - kms:UntagResource
+            - kms:GenerateRandom
+            - kms:ListRetirableGrants
+            - kms:GetKeyPolicy
+            - iam:ListRoles
+            - kms:ListResourceTags
+            - kms:ListGrants
+            - kms:GetParametersForImport
+            - kms:DescribeCustomKeyStores
+            - kms:ListKeys
+            - kms:TagResource
+            - kms:GetKeyRotationStatus
+            - kms:ListAliases
+            - kms:GenerateDataKey
+            - kms:CreateAlias
+            - kms:DescribeKey
+            - kms:CreateKey
+            - iam:ListUsers
+            - iam:ListGroups
+            - kms:DeleteAlias
+            - kms:CreateGrant
+          Resource: "*"
+      ManagedPolicyName: CustomKMSDecryptOnly
+
+  CustomRedisReadOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - elasticache:ListAllowedNodeTypeModifications
+          Resource: "*"
+      ManagedPolicyName: CustomRedisReadOnly
+
+  CustomRedisWriteOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - elasticache:ModifyCacheCluster
+            - elasticache:BatchApplyUpdateAction
+          Resource: "*"
+      ManagedPolicyName: CustomRedisWriteOnly
+
+  CustomAthenaReadOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - athena:GetDataCatalog
+            - athena:GetDatabase
+            - athena:GetQueryExecution
+            - athena:GetQueryResults
+            - athena:GetQueryResultsStream
+            - athena:GetTableMetadata
+            - athena:GetWorkGroup
+            - athena:ListDataCatalogs
+            - athena:ListDatabases
+            - athena:ListEngineVersions
+            - athena:ListQueryExecutions
+            - athena:ListTableMetadata
+            - athena:ListWorkGroups
+            - glue:GetDatabase
+            - glue:GetDatabases
+            - glue:GetPartition
+            - glue:GetPartitions
+            - glue:GetTable
+            - glue:GetTables
+            - s3:GetBucketLocation
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:ListBucketMultipartUploads
+            - s3:ListMultipartUploadParts
+          Resource: "*"
+      ManagedPolicyName: CustomAthenaReadOnly
+
+  CustomAthenaWriteOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - athena:BatchGetQueryExecution
+            - athena:StartQueryExecution
+            - athena:StopQueryExecution
+            - athena:ListDatabases
+            - glue:BatchCreatePartition
+            - glue:BatchDeletePartition
+            - glue:BatchDeleteTable
+            - glue:BatchGetPartition
+            - glue:CreateDatabase
+            - glue:CreatePartition
+            - glue:CreateTable
+            - glue:DeleteDatabase
+            - glue:DeletePartition
+            - glue:DeleteTable
+            - glue:UpdateDatabase
+            - glue:UpdatePartition
+            - glue:UpdateTable
+            - s3:AbortMultipartUpload
+            - s3:CreateBucket
+            - s3:PutBucketPublicAccessBlock
+            - s3:PutObject
+            - s3:GetBucketLocation
+          Resource: "*"
+      ManagedPolicyName: CustomAthenaWriteOnly
+
+  CustomMSKReadOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - kafka-cluster:AlterGroup
+            - kafka-cluster:ReadData
+            - kafka-cluster:DescribeTopic
+            - kafka-cluster:DescribeGroup
+            - kafka-cluster:Connect
+            - kafka:DescribeCluster
+            - kafka:DescribeClusterV2
+            - kafka:GetBootstrapBrokers
+            - ec2:DescribeSecurityGroups
+            - ec2:DescribeSubnets
+            - ec2:DescribeVpcs
+          Resource: "*"
+      ManagedPolicyName: CustomMSKReadOnly
+
+  CustomMSKWriteOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - kafka-cluster:DescribeTopic
+            - kafka-cluster:Connect
+            - kafka-cluster:WriteData
+          Resource: "*"
+      ManagedPolicyName: CustomMSKWriteOnly
+
+  CustomEC2ENIPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - ec2:DescribeNetworkInterfaces
+            - ec2:CreateNetworkInterface
+            - ec2:AttachNetworkInterface
+            - ec2:DeleteNetworkInterface
+          Resource: "*"   
+      ManagedPolicyName: CustomEC2ENIPolicy
+
+  CustomSNSTopicPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - sns:ListTopics
+            - sns:SetTopicAttributes
+            - sns:Publish
+            - sns:Subscribe
+            - sns:AddPermission
+            - sns:GetDataProtectionPolicy
+            - sns:DeleteEndpoint
+            - sns:CreatePlatformEndpoint
+            - sns:DeleteEndpoint
+            - sns:GetEndpointAttributes
+          Resource: "*"   
+      ManagedPolicyName: CustomSNSTopicPolicy
+
+
+  CustomSQSAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            - sqs:receiveMessage
+            - sqs:sendMessage
+            - sqs:listQueues
+            - sqs:AddPermission
+            - sqs:ChangeMessageVisibility
+            - sqs:ListDeadLetterSourceQueues
+            - sqs:CreateQueue
+            - sqs:GetQueueAttributes
+            - sqs:GetQueueUrl
+            - sqs:DeleteMessage
+          Resource: "*"
+      ManagedPolicyName: CustomSQSAccessPolicy

@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Apollo IAM Roles
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  ApolloGlueRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: apollo-glue-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/AmazonRedshiftFullAccess
+        - arn:aws:iam::aws:policy/AmazonRedshiftDataFullAccess
+        - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaMSKExecutionRole
+        - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - glue.amazonaws.com
+            - redshift.amazonaws.com
+          Action: sts:AssumeRole
+
+  # KinesisPolicy:
+  #   Type: AWS::IAM::Policy
+  #   Properties:
+  #     PolicyName: kinesis_policy
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Action: 
+  #             - 'kinesis:*'
+  #             - 's3:*'
+  #             - 'glue:*'
+  #           Resource: "*"
+  #     Roles:
+  #       - !Ref FirehoseRole
+
+  # FirehoseRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service: firehose.amazonaws.com
+  #           Action: 'sts:AssumeRole'
+  #           Condition:
+  #             StringEquals:
+  #               'sts:ExternalId': !Ref 'AWS::AccountId'
+
+  # RedshiftS3Role:
+  #   Type: "AWS::IAM::Role"
+  #   Properties:
+  #     RoleName: Apollo-RedshiftCopyUnload
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+  #     Path: "/"
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - redshift.amazonaws.com
+  #         Action: sts:AssumeRole
+
+  # ApolloVpceKinesis:
+  #   Type: AWS::EC2::VPCEndpoint
+  #   Properties: 
+  #     VpcId: !Ref VpcId
+  #     ServiceName:
+  #       Fn::Join:
+  #       - ""
+  #       - - "com.amazonaws."
+  #         - !Ref AWSRegion
+  #         - ".kinesis-streams"
+  #     VpcEndpointType: Interface
+  #     SubnetIds:
+  #       Fn::Split:
+  #       - ','
+  #       - !Ref SubnetIds
+  #     SecurityGroupIds:
+  #       - Fn::ImportValue: SG-CumSGAppBroker
+  #       - Fn::ImportValue: SG-CumSGSNPProcessor
+  #       - Fn::ImportValue: SG-CumSGData
+  #     PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+Outputs:
+  ApolloGlueRole:
+    Description: The ARN of Apollo Role
+    Value: !GetAtt [ApolloGlueRole,Arn]
+    Export:
+      Name: !Sub "Role-ApolloGlueRole"
+
+  # ApolloFirehoseRole:
+  #   Description: The ARN of Apollo Role for Firehose
+  #   Value: !GetAtt [FirehoseRole,Arn]
+  #   Export:
+  #     Name: !Sub "Role-FirehoseRole"
+
+  # ApolloRedshiftS3Role:
+  #   Description: The ARN of Apollo Role for Redshift-S3 Copy Unload
+  #   Value: !GetAtt [RedshiftS3Role,Arn]
+  #   Export:
+  #     Name: !Sub "Role-RedshiftS3Role"
+
+  # ApolloVpceKinesisOutput:
+  #   Description: The ID of Apollo - VPC Endpoint - Kinesis Streams
+  #   Value: !Ref "ApolloVpceKinesis"
+  #   Export:
+  #     Name: !Sub "VPCE-ApolloVpceKinesis"

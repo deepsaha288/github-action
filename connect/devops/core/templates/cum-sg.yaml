@@ -1,0 +1,360 @@
+# Input Parameters
+#   VpcId
+#   S3Prefix
+#   
+# Import 
+# ---None
+#
+# Export 
+#   SG-CumSGAppBroker
+#   SG-CumSGZK
+#   SG-CumSGData
+#   
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates 3 SecurityGroups "CumSGAppBroker", "CumSGZK", "CumSGData" used for Kafka, Zookeeper, Storm, DAX, Lambdas, KMS, SNS, SQS ...etc
+Parameters:
+  VpcId:
+    Type: String
+    # Default: vpc-0a0928150b4e2e1a0
+  JenkinsNodeCIDR:
+    Type: String
+
+Resources:
+  ### Security Groups
+  #   CumSGAppBroker - will be imported in Kafka, Storm, Lambda, KMS, SNS, SQS, S3
+  #   CumSGZK - will be imported in Zookeeper 
+  #   CumSGData - will be imported in DAX
+  CumSGAppBroker:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group CumSGAppBroker for Kafka, Storm Cluster and Lambda applications 
+      GroupName: CumSGAppBroker
+      Tags:
+        - Key: Name
+          Value: CumSGAppBroker
+      VpcId: !Ref VpcId
+
+      SecurityGroupIngress:
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.160.221.0/26 # VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.176.142.0/24 # New Cumulus VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.161.202.32/27
+
+        -
+          Description: 443 for Medtronic Access to Kibana/Elastic Search
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.0.0.0/8 # Kibana access
+
+        -
+          Description: Jenkins Firewall Access to Elastic Search
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref JenkinsNodeCIDR  #Jenkins Firewall
+
+      SecurityGroupEgress:
+
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIpv6: '::/0'
+
+  CumSGZK:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group CumSGZK for Zookeeper 
+      GroupName: CumSGZK
+      Tags:
+        - Key: Name
+          Value: CumSGZK
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.160.221.0/26 # VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.176.142.0/24 # New Cumulus VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.161.202.32/27
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          #CidrIp: 10.161.226.0/26  # CDX IP access
+          CidrIp: !Ref JenkinsNodeCIDR # CDX IP access
+
+        -
+          Description: Jenkins Firewall Access to Elastic Search
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.51.40.131/32 #Jenkins Firewall
+
+      SecurityGroupEgress:
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIpv6: '::/0'
+
+  
+  CumSGData:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group DAX
+      GroupName: CumSGData
+      Tags:
+        - Key: Name
+          Value: CumSGData
+      VpcId: !Ref VpcId
+
+      SecurityGroupIngress:
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.160.221.0/26 # VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.176.142.0/24 # New Cumulus VPN access
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.161.202.32/27
+
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          #CidrIp: 10.161.226.0/26 # CDX IP access
+          CidrIp: !Ref JenkinsNodeCIDR # CDX IP access
+
+        -
+          Description: Jenkins Firewall Access to Elastic Search
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.51.40.131/32 #Jenkins Firewall
+
+      SecurityGroupEgress:
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+        # outbound port for all
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIpv6: '::/0'
+
+
+      
+  
+  ### Rules for Inter Security groups communication
+  InboundRuleAppBroker2Self:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGAppBroker
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGAppBroker
+        - GroupId
+  # OutboundRuleAppBroker2Self:
+  #   Type: AWS::EC2::SecurityGroupEgress
+  #   Properties:
+  #     GroupId:
+  #       Fn::GetAtt:
+  #       - CumSGAppBroker
+  #       - GroupId
+  #     IpProtocol: -1
+  #     FromPort: -1
+  #     ToPort: -1
+  #     DestinationSecurityGroupId: 
+  #       Fn::GetAtt:
+  #       - CumSGAppBroker
+  #       - GroupId
+
+  InboundRuleZK2Self:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGZK
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGZK
+        - GroupId
+  # OutboundRuleZK2Self:
+  #   Type: AWS::EC2::SecurityGroupEgress
+  #   Properties:
+  #     GroupId:
+  #       Fn::GetAtt:
+  #       - CumSGZK
+  #       - GroupId
+  #     IpProtocol: -1
+  #     FromPort: -1
+  #     ToPort: -1
+  #     DestinationSecurityGroupId: 
+  #       Fn::GetAtt:
+  #       - CumSGZK
+  #       - GroupId
+
+  # OutboundRuleData2Self:
+  #   Type: AWS::EC2::SecurityGroupEgress
+  #   Properties:
+  #     GroupId:
+  #       Fn::GetAtt:
+  #       - CumSGData
+  #       - GroupId
+  #     IpProtocol: -1
+  #     FromPort: -1
+  #     ToPort: -1
+  #     DestinationSecurityGroupId: 
+  #       Fn::GetAtt:
+  #       - CumSGData
+  #       - GroupId
+
+  InboundRuleZK2AppBroker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGZK
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGAppBroker
+        - GroupId
+
+  InboundRuleData2AppBroker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - CumSGData
+        - GroupId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: 
+        Fn::GetAtt:
+        - CumSGAppBroker
+        - GroupId
+
+
+  # OutboundRuleAppBroker2ZK:
+  #   Type: AWS::EC2::SecurityGroupEgress
+  #   Properties:
+  #     GroupId:
+  #       Fn::GetAtt:
+  #       - CumSGAppBroker
+  #       - GroupId
+  #     IpProtocol: -1
+  #     FromPort: -1
+  #     ToPort: -1
+  #     DestinationSecurityGroupId: 
+  #       Fn::GetAtt:
+  #       - CumSGZK
+  #       - GroupId
+
+  # OutboundRuleAppBroker2Data:
+  #   Type: AWS::EC2::SecurityGroupEgress
+  #   Properties:
+  #     GroupId:
+  #       Fn::GetAtt:
+  #       - CumSGAppBroker
+  #       - GroupId
+  #     IpProtocol: -1
+  #     FromPort: -1
+  #     ToPort: -1
+  #     DestinationSecurityGroupId: 
+  #       Fn::GetAtt:
+  #       - CumSGData
+  #       - GroupId
+
+
+        
+        
+
+Outputs:
+
+  CumSGAppBroker:
+    Description: The ID of CumSGAppBroker
+    Value: !Ref CumSGAppBroker
+    Export:
+      Name: !Sub SG-CumSGAppBroker
+
+  CumSGZK:
+    Description: The ID of CumSGZK
+    Value: !Ref CumSGZK
+    Export:
+      Name: !Sub SG-CumSGZK
+
+  CumSGData:
+    Description: The ID of CumSGData
+    Value: !Ref CumSGData
+    Export:
+      Name: !Sub SG-CumSGData

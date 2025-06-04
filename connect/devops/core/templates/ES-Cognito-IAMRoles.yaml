@@ -1,0 +1,131 @@
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Roles For Cognito Access.
+
+Parameters:
+  IDPProvider:
+    Type: String
+    Default: arn:aws:iam::661623416131:oidc-provider/mdtsts-dev.medtronic.com/mmclous
+
+  IdentityPoolID:
+    Type: String
+    Default: eu-central-1:6ce6d765-6b5b-49ac-b48c-81a891d371e5
+
+Resources:
+  L1UserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Role for L1 users
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud:
+                 !Ref IdentityPoolID
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr:
+               authenticated
+      RoleName: ES-IAML1UserRole
+
+  L4UserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Role for L4 users
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: 
+                !Ref IdentityPoolID
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: 
+                authenticated
+      RoleName: ES-IAML4UserRole
+
+  LimitedUserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Role for Limited users
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: 
+                !Ref IdentityPoolID
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: 
+                authenticated
+      RoleName: ES-IAMLimitedUserRole
+
+  MasterUserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Role Master users
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: 
+                !Ref IdentityPoolID
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: 
+                authenticated
+      RoleName: ES-IAMMasterUserRole
+
+  ENGUserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Role Engineering User
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: 
+                !Ref IdentityPoolID
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: 
+                authenticated
+      RoleName: ES-IAMENGUserRole
+
+
+  CognitoAccessForAmazonES:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Amazon Elasticsearch role for Kibana authentication
+      Path: /service-role/ 
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: es.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonESCognitoAccess
+      RoleName: CognitoAccessForAmazonES

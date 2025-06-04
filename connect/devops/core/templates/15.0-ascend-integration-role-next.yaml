@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for Ascend MSK Access.
+Parameters:
+
+  MSKClusterName:
+    Type: String
+  AscendRoleARN:
+    Type: String
+    
+Resources:
+  CumAscendMSKWrite:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: Next-AscendMSKWrite
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: AscendToCumulusMSK
+          Effect: Allow
+          Action:
+          - kafka-cluster:Connect
+          - kafka-cluster:DescribeTopic
+          - kafka-cluster:DescribeTopicDynamicConfiguration
+          - kafka-cluster:WriteData
+          - kafka-cluster:WriteDataIdempotently
+          - kafka-cluster:DescribeGroup
+          - kafka-cluster:AlterGroup
+          - kafka-cluster:ReadData
+          - kafka-cluster:DescribeTransactionalId
+          - kafka-cluster:AlterTransactionalId
+          - kafka-cluster:DescribeCluster
+          - kafka-cluster:DescribeClusterDynamicConfiguration
+          Resource:
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:cluster/${MSKClusterName}/*'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-CORP-EAI-CL-DATA-COSMOS-CDX'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-CORP-EAI-CL-NOTIFICATION-COSMOS-CDX'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-SYS-SNP-HANDOVER-COSMOS-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-SYS-ENCRYPTED-SNP-HANDOVER-COSMOS-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/CGM-SYS-SNP-HANDOVER-COSMOS-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/RETINA_ALL-SYS-CDX_ING-SNP-DEX-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/RETINA_ALL-SYS-CDX_BASE_NOTIF-CLINICAL-DEX-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/RETINA_ALL-SYS-CDX_BASE_NOTIF-PERSONAL-DEX-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-SYS-GST-TRACE-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-SYS-PUMP-DETAILED-TRACE-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-SYS-PUMP-DIAGNOSTIC-TRACE-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:topic/${MSKClusterName}/*/BLE-EU-SYS-INGESTION-SENSOR-TRACE-NA-NA'
+          - Fn::Sub: 'arn:aws:kafka:${AWS::Region}:${AWS::AccountId}:group/${MSKClusterName}/*/snapshot-consumer-group'
+      Roles:
+        - Ref: "CumAscendMSKAccessRole"
+
+  CumAscendMSKAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: Next-AscendMSKAccessRole
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: ${AscendRoleARN}
+          Action: sts:AssumeRole
+      Path: "/"
+
+
+Outputs:
+  OutputCumAscendMSKAccessRole:
+    Description: The ARN of Cumulus Role for Ascend MSK Access.
+    Value: !GetAtt [CumAscendMSKAccessRole,Arn]
+    Export:
+      Name: !Sub "Next-Role-CumAscendMSKAccessRole"

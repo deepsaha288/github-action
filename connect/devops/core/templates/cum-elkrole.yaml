@@ -1,0 +1,57 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role-CumRoleELKAccess
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for ELK access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+Resources:
+  CumRoleELKAccess:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: CumELKAccessRole       
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - es.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      Policies: 
+        -
+          PolicyName: "Elasticsearch-Access-Policy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - 
+                Effect: "Allow"
+                Action: 
+                - ec2:CreateNetworkInterface
+                - ec2:DeleteNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:ModifyNetworkInterfaceAttribute
+                - ec2:DescribeSecurityGroups
+                - ec2:DescribeSubnets
+                - ec2:DescribeVpcs
+                Resource: "*"
+
+Outputs:
+  CumRoleELKAccess:
+    Description: The ARN of Cumulus - Role - ELK
+    Value: !GetAtt [CumRoleELKAccess,Arn]
+    Export:
+      Name: !Sub "Role-CumRoleELKAccess"

@@ -1,0 +1,165 @@
+# Input Parameters
+#   UserArn
+#   IAASArn
+#   SSMKMSKeyForPiiArnName
+#   SSMKMSKeyForPhiArnName
+#
+# Import
+#   Role-CumRoleLambdaAccess
+#
+# Export
+#   KMS-CumKmsKeyForPii
+#   KMS-CumKmsKeyForPhi
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Janus KMS Keys cum-kms-key-IaaSEaiForPii & cum-kms-key-IaaSEaiForPhi
+Parameters:
+  UserArn:
+    Type: String
+    # Default: arn:aws:iam::661623416131:user/CumulusDev-AWScli-ProgAccess
+
+  IAASEC2Arn:
+    Type: String
+    # Default: 'arn:aws:iam::718740516227:role/IAAS-KMS-EC2-Role'
+
+  # Parameters for SSM
+  SSMKMSKeyForPiiArnName:
+    Type: String
+    #Default: "cum_kms_key_IaaSEaiForPii"
+  SSMKMSKeyForPhiArnName:
+    Type: String
+    #Default: "cum_kms_key_IaaSEaiForPhi"
+
+Resources:
+# cumulus - KMS Keys -  IaaSEai For Pii
+  CumKmsKeyForPii:
+    # DeletionPolicy: Retain
+    Type: AWS::KMS::Key
+    Properties:
+      Description: cum-kms-key IaaSEai For Pii
+      KeyPolicy:
+        Id: cum-kms-key-IaaSEaiForPii
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserArn
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-SecurityAuditor'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-CloudAdmin'
+          Action: kms:*
+          Resource: "*"
+
+# KMS Keys - IaaSEai For Pii - Alias
+  CumKmsKeyForPiiAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/cum-kms-key-IaaSEaiForPii
+      TargetKeyId:
+        Ref: CumKmsKeyForPii
+    DependsOn:
+      - CumKmsKeyForPii
+
+# cumulus - KMS Keys -  IaaSEai For Phi
+  CumKmsKeyForPhi:
+    # DeletionPolicy: Retain
+    Type: AWS::KMS::Key
+    Properties:
+      Description: cum-kms-key IaaSEai For Phi
+      KeyPolicy:
+        Id: cum-kms-key-IaaSEaiForPhi
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserArn
+          Action: kms:*
+          Resource: "*"
+        - Sid: Enable IAM User Permissions for IAAS role
+          Effect: Allow
+          Principal:
+            AWS: !Ref IAASEC2Arn
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          - elasticsearch:ListTags
+          Resource: "*"
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-SecurityAuditor'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-CloudAdmin'
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Dome9 Permissions
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-Dome9-ReadOnly'
+          Action: 
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          Resource: "*"
+
+# KMS Keys - IaaSEai For Phi - Alias
+  CumKmsKeyForPhiAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/cum-kms-key-IaaSEaiForPhi
+      TargetKeyId:
+        Ref: CumKmsKeyForPhi
+    DependsOn:
+      - CumKmsKeyForPhi
+
+  # Description: "Create KMS Key ARN SSM Parameter for CumKmsKeyForPii"
+  SSMKMSKeyForPiiArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyForPiiArnName
+      Description: "SSM Parameter for CumKmsKeyForPii KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumKmsKeyForPii,Arn] 
+    DependsOn: 
+      - CumKmsKeyForPii
+
+  # Description: "Create KMS Key ARN SSM Parameter for CumKmsKeyForPhi"
+  SSMKMSKeyForPhiArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyForPhiArnName
+      Description: "SSM Parameter for CumKmsKeyForPhi KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumKmsKeyForPhi,Arn] 
+    DependsOn: 
+      - CumKmsKeyForPhi
+
+
+Outputs:
+  CumKmsKeyForPiiOutput:
+    Description: ARN of KMS Key - CumKmsKeyForPii  
+    Value: !GetAtt [CumKmsKeyForPii, Arn] 
+    Export:
+      Name: !Sub KMS-CumKmsKeyForPii
+
+  CumKmsKeyForPhiOutput:
+    Description: ARN of KMS Key - CumKmsKeyForPhi  
+    Value: !GetAtt [CumKmsKeyForPhi, Arn] 
+    Export:
+      Name: !Sub KMS-CumKmsKeyForPhi
+

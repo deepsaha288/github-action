@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates Security group for MSK
+Parameters:
+  VpcId:
+    Type: String
+  JenkinsNodeCIDR:
+    Type: String
+
+Resources:
+  CumSGMSK:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for MSK
+      GroupName: CumSGMSK
+      Tags:
+        - Key: Name
+          Value: CumSGMSK
+      VpcId: !Ref VpcId
+
+
+  MSKZookeeperToProcessorsTLS:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow outbound traffic from zookeeper to Processors over tls port
+      FromPort: 2182
+      ToPort: 2182
+      DestinationSecurityGroupId: !ImportValue SG-CumSGAppBroker
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKZookeeperFromProcessorsTLS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow inbound traffic from Processors to zookeeper over tls port
+      FromPort: 2182
+      ToPort: 2182
+      SourceSecurityGroupId: !ImportValue SG-CumSGAppBroker
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKBrokerToProcessorsIam:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow outbound traffic from brokers to processors over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      DestinationSecurityGroupId: !ImportValue SG-CumSGAppBroker
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKBrokerFromProcessorsIam:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow inbound traffic from processors to brokers over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      SourceSecurityGroupId: !ImportValue SG-CumSGAppBroker
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKZookeeperToSNPTLS:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow outbound traffic from zookeeper to SNP over tls port
+      FromPort: 2182
+      ToPort: 2182
+      DestinationSecurityGroupId: !ImportValue SG-CumSGSNPProcessor
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKZookeeperFromSNPTLS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow inbound traffic from SNP to zookeeper over tls port
+      FromPort: 2182
+      ToPort: 2182
+      SourceSecurityGroupId: !ImportValue SG-CumSGSNPProcessor
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKBrokerToSNPIam:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow outbound traffic from brokers to SNP over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      DestinationSecurityGroupId: !ImportValue SG-CumSGSNPProcessor
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKBrokerFromSNPIam:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow inbound traffic from SNP to brokers over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      SourceSecurityGroupId: !ImportValue SG-CumSGSNPProcessor
+      GroupId:
+        !Ref CumSGMSK
+
+  OutboundRuleMSK2Self:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow outbound traffic from MSK to self over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      DestinationSecurityGroupId: !Ref CumSGMSK
+      GroupId:
+        !Ref CumSGMSK
+
+  InboundRuleMSK2Self:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: "tcp"
+      Description: Allow inbound traffic from MSK to self over the iam auth port
+      FromPort: 9098
+      ToPort: 9098
+      SourceSecurityGroupId: !Ref CumSGMSK
+      GroupId:
+        !Ref CumSGMSK
+
+  MSKToAll:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: "-1"
+      Description: Allow outbound https traffic from the MSK security group over all ports
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0
+      GroupId:
+        !Ref CumSGMSK
+
+
+Outputs:
+
+  CumSGMSK:
+    Description: The ID of CumSGMSK
+    Value: !Ref CumSGMSK
+    Export:
+      Name: !Sub SG-CumSGMSK

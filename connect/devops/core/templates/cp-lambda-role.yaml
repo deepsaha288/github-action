@@ -1,0 +1,183 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_CsrSMSNotificationRole
+#   Role_CsrPushNotificationRole
+#   Role_NotificationPayloadProcessingRole
+#   Role_CpLoadUsersettingRole
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+
+  #Cp-2
+  CsrSMSNotificationRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CsrSMSNotificationRole
+
+  CsrPushNotificationRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CsrPushNotificationRole  
+
+#Cp-4
+  NotificationPayloadProcessingRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: NotificationPayloadProcessingRole  
+#Cp-5
+  CpLoadUsersettingRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CpLoadUsersettingRole  
+
+  GetCpAppVersionRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: GetCpAppVersionRole
+
+
+
+
+Outputs:
+  CsrSMSNotificationRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [CsrSMSNotificationRole,Arn]
+    Export:
+      Name: !Sub "Role-CsrSMSNotificationRole"
+
+  CsrPushNotificationRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [CsrPushNotificationRole,Arn]
+    Export:
+      Name: !Sub "Role-CsrPushNotificationRole"
+
+  NotificationPayloadProcessingRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [NotificationPayloadProcessingRole,Arn]
+    Export:
+      Name: !Sub "Role-NotificationPayloadProcessingRole"
+
+  CpLoadUsersettingRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [CpLoadUsersettingRole,Arn]
+    Export:
+      Name: !Sub "Role-CpLoadUsersettingRole"
+
+  GetCpAppVersionRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [GetCpAppVersionRole,Arn]
+    Export:
+      Name: !Sub "Role-GetCpAppVersionRole"
+

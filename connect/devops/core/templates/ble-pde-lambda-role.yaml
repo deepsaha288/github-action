@@ -1,0 +1,582 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_SetAppPushUpdatePdeRole
+#   Role_GetAppPushPdeRole
+#   Role_DeregisterAppPushRole
+#   Role_DelayUpdateNotificationRole
+#   Role_NotificationProcessingRole
+#   Role_PublishSMSObjectRole
+#   Role_PreferenceChangeReceptorRole
+#   Role_PreferenceChangeProcessorRole
+#   Role_DlqSinkToS3Role
+#   Role_AuthTokenDeidentificationGcCounterRole
+#   Role_RefreshClientPreferencesDefaultRole
+#   Role_RefreshGuidanceConfigRole
+#   Role_EventProcessorPdeAppPushRole
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  SubnetIds:
+    Type: String
+
+####################################################### PDE Lambda Role #################################################################
+
+Resources:
+
+  LogsToElasticSearchLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonESFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: LogsToElasticSearchLambdaRole
+
+  SetAppPushUpdatePdeRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SetAppPushUpdatePdeRole
+
+  GetAppPushPdeRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: GetAppPushPdeRole  
+
+  DeregisterAppPushRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DeregisterAppPushRole  
+
+  PdeRegisterAppPushRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PdeRegisterAppPushRole
+
+# ################################################################# BLE V1 Lambda role #################################################################
+
+
+  DelayUpdateNotificationRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DelayUpdateNotificationRole  
+
+  NotificationProcessingRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+  
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: NotificationProcessingRole 
+
+  PublishSMSObjectRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PublishSMSObjectRole     
+
+  PreferenceChangeReceptorRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+           
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PreferenceChangeReceptorRole
+
+  PreferenceChangeProcessorRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PreferenceChangeProcessorRole
+
+  DlqSinkToS3Role:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DlqSinkToS3Role
+
+  SecureOfflineLogDycryptorRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SecureOfflineLogDycryptorRole
+
+
+  AuthTokenDeidentificationGcCounterRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: AuthTokenDeidentificationGcCounterRole
+
+  RefreshClientPreferencesDefaultRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: RefreshClientPreferencesDefaultRole
+
+  RefreshGuidanceConfigRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: RefreshGuidanceConfigRole
+
+  EventProcessorPdeAppPushRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSNSTopicPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: EventProcessorPdeAppPushRole
+
+######################################################################## BLE V2 Lambda Role ######################################
+
+
+  RemoteLogUploaderRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: RemoteLogUploaderRole
+
+
+
+########################################################## Bulk Push lambda role ###############################################
+
+#Note : Add NotificationProcessingRole in CP Sign key
+  BulkPushProcessorLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/SecretsManagerReadWrite'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: BulkPushProcessorLambdaRole
+
+
+Outputs:
+
+  LogsToElasticSearchLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [LogsToElasticSearchLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-LogsToElasticSearchLambdaRole"
+
+  SetAppPushUpdatePdeRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [SetAppPushUpdatePdeRole,Arn]
+    Export:
+      Name: !Sub "Role-SetAppPushUpdatePdeRole"
+
+  GetAppPushPdeRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [GetAppPushPdeRole,Arn]
+    Export:
+      Name: !Sub "Role-GetAppPushPdeRole"
+
+  DeregisterAppPushRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DeregisterAppPushRole,Arn]
+    Export:
+      Name: !Sub "Role-DeregisterAppPushRole"
+
+  DelayUpdateNotificationRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DelayUpdateNotificationRole,Arn]
+    Export:
+      Name: !Sub "Role-DelayUpdateNotificationRole"
+
+  NotificationProcessingRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [NotificationProcessingRole,Arn]
+    Export:
+      Name: !Sub "Role-NotificationProcessingRole"
+
+  PublishSMSObjectRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PublishSMSObjectRole,Arn]
+    Export:
+      Name: !Sub "Role-PublishSMSObjectRole"
+
+  PreferenceChangeReceptorRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PreferenceChangeReceptorRole,Arn]
+    Export:
+      Name: !Sub "Role-PreferenceChangeReceptorRole"
+
+  PreferenceChangeProcessorRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PreferenceChangeProcessorRole,Arn]
+    Export:
+      Name: !Sub "Role-PreferenceChangeProcessorRole"
+
+  DlqSinkToS3Role:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DlqSinkToS3Role,Arn]
+    Export:
+      Name: !Sub "Role-DlqSinkToS3Role"
+
+  SecureOfflineLogDycryptorRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [SecureOfflineLogDycryptorRole,Arn]
+    Export:
+      Name: !Sub "Role-SecureOfflineLogDycryptorRole"
+
+  AuthTokenDeidentificationGcCounterRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [AuthTokenDeidentificationGcCounterRole,Arn]
+    Export:
+      Name: !Sub "Role-AuthTokenDeidentificationGcCounterRole"
+
+  RefreshClientPreferencesDefaultRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [RefreshClientPreferencesDefaultRole,Arn]
+    Export:
+      Name: !Sub "Role-RefreshClientPreferencesDefaultRole"
+
+  RefreshGuidanceConfigRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [RefreshGuidanceConfigRole,Arn]
+    Export:
+      Name: !Sub "Role-RefreshGuidanceConfigRole"
+
+  EventProcessorPdeAppPushRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [EventProcessorPdeAppPushRole,Arn]
+    Export:
+      Name: !Sub "Role-EventProcessorPdeAppPushRole"
+
+
+  RemoteLogUploaderRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [RemoteLogUploaderRole,Arn]
+    Export:
+      Name: !Sub "Role-RemoteLogUploaderRole"
+
+
+  PdeRegisterAppPushRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PdeRegisterAppPushRole,Arn]
+    Export:
+      Name: !Sub "Role-PdeRegisterAppPushRole"
+
+
+  BulkPushProcessorLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [BulkPushProcessorLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-BulkPushProcessorLambdaRole"

@@ -1,0 +1,204 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy and Role for kinesis firehose.
+Parameters:
+  CPFailureBucketName:
+    Type: String
+  BLEFailureBucketName:
+    Type: String
+  FotaFailureBucketName:
+    Type: String
+  EsDomainName:
+    Type: String
+  KinesisFirehoseName:
+    Type: String
+
+Resources:
+  CumKinesisFirehosePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      ManagedPolicyName: KinesisFirehosePolicy
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+          - s3:AbortMultipartUpload
+          - s3:GetBucketLocation
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:ListBucketMultipartUploads
+          - s3:PutObject
+          Resource:
+          - Fn::Sub: 'arn:aws:s3:::${CPFailureBucketName}'
+          - Fn::Sub: 'arn:aws:s3:::${CPFailureBucketName}/*'
+          # - Fn::Sub: 'arn:aws:s3:::${BLEFailureBucketName}'
+          # - Fn::Sub: 'arn:aws:s3:::${BLEFailureBucketName}/*'
+          # - Fn::Sub: 'arn:aws:s3:::${FotaFailureBucketName}'
+          # - Fn::Sub: 'arn:aws:s3:::${FotaFailureBucketName}/*'
+        - Sid: VisualEditor1
+          Effect: Allow
+          Action:
+          - lambda:InvokeFunction
+          - lambda:GetFunctionConfiguration
+          Resource: 
+          - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+        - Sid: VisualEditor2
+          Effect: Allow
+          Action:
+          - kms:GenerateDataKey
+          - kms:Decrypt
+          Resource: 
+          - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          Condition:
+            StringEquals:
+              'kms:ViaService' : !Sub 's3.${AWS::Region}.amazonaws.com'
+            StringLike:
+              'kms:EncryptionContext:aws:s3:arn' : 
+              - !Sub 'arn:aws:s3:::%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+              - !Sub 'arn:aws:s3:::%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/*'
+        - Sid: VisualEditor3
+          Effect: Allow
+          Action:
+          - ec2:DescribeVpcs
+          - ec2:DescribeVpcAttribute
+          - ec2:DescribeSubnets
+          - ec2:DescribeSecurityGroups
+          - ec2:DescribeNetworkInterfaces
+          - ec2:CreateNetworkInterface
+          - ec2:CreateNetworkInterfacePermission
+          - ec2:DeleteNetworkInterface
+          - glue:GetTableVersions
+          Resource: "*"
+        - Sid: VisualEditor4
+          Effect: Allow
+          Action:
+          - es:DescribeElasticsearchDomain
+          - es:DescribeElasticsearchDomains
+          - es:DescribeElasticsearchDomainConfig
+          - es:ESHttpPost
+          - es:ESHttpPut
+          Resource: 
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/*'
+        - Sid: VisualEditor5
+          Effect: Allow
+          Action:
+          - es:ESHttpGet
+          Resource: 
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/_all/_settings'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/_cluster/stats'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/cp-app-logs/_mapping/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/_nodes'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/_nodes/*/stats'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/_stats'
+          - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EsDomainName}/cp-app-logs/_stats'
+        - Sid: VisualEditor6
+          Effect: Allow
+          Action:
+          - logs:PutLogEvents
+          Resource: 
+          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kinesisfirehose/${KinesisFirehoseName}:log-stream:*'
+          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%:log-stream:*'
+        - Sid: VisualEditor7
+          Effect: Allow
+          Action:
+          - kinesis:StopStreamEncryption
+          - kinesis:DeregisterStreamConsumer
+          - kinesis:SubscribeToShard
+          - kinesis:EnableEnhancedMonitoring
+          - kinesis:DecreaseStreamRetentionPeriod
+          - kinesis:PutRecords
+          - kinesis:DescribeStreamConsumer
+          - kinesis:CreateStream
+          - kinesis:GetShardIterator
+          - kinesis:DescribeStream
+          - kinesis:RegisterStreamConsumer
+          - kinesis:ListTagsForStream
+          - kinesis:UpdateStreamMode
+          - kinesis:PutRecord
+          - kinesis:DeleteStream
+          - kinesis:DescribeStreamSummary
+          - kinesis:SplitShard
+          - kinesis:MergeShards
+          - kinesis:IncreaseStreamRetentionPeriod
+          - kinesis:UpdateShardCount
+          - kinesis:GetRecords
+          - kinesis:DescribeLimits
+          - kinesis:StartStreamEncryption
+          - kinesis:DisableEnhancedMonitoring
+          - kinesis:ListShards
+          Resource: 
+          - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          # - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/janus-applogs-data-stream'
+          # - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/cp-applogs-data-stream'
+          # - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/ble-applogs-data-stream'
+          # - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/fota-applogs-data-stream'
+        - Sid: VisualEditor8
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          Resource: 
+          - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+          Condition:
+            StringEquals:
+              'kms:ViaService' : !Sub 'kinesis.${AWS::Region}.amazonaws.com'
+            StringLike:
+              'kms:EncryptionContext:aws:kinesis:arn' : 
+              - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%'
+      Roles:
+        - Ref: "CumMobileAppLogsESStreamingRole"
+
+
+  CumMobileAppLogsESStreamingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonKinesisFirehoseFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonKinesisFullAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+      RoleName: MobileAppLogsESStreamingRole
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - firehose.amazonaws.com
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+
+Outputs:
+  CumMobileAppLogsESStreamingRole:
+    Description: The ARN of Cumulus Role for Kinesis Firehose
+    Value: !GetAtt [CumMobileAppLogsESStreamingRole,Arn]
+    Export:
+      Name: !Sub "Role-CumMobileAppLogsESStreamingRole"
+
+
+#   CumKinesisFirehoseRole:
+#     Type: "AWS::IAM::Role"
+#     Properties:
+#       RoleName: KinesisFirehoseRole
+#       AssumeRolePolicyDocument: 
+#         Version: '2012-10-17'
+#         Statement:
+#         - Effect: Allow
+#           Principal:
+#             Service:
+#             - firehose.amazonaws.com
+#           Action: sts:AssumeRole
+#       Path: "/"
+
+# Outputs:
+#   CumKinesisFirehoseRole:
+#     Description: The ARN of Cumulus Role for Kinesis Firehose
+#     Value: !GetAtt [CumKinesisFirehoseRole,Arn]
+#     Export:
+#       Name: !Sub "Role-CumKinesisFirehoseRole"

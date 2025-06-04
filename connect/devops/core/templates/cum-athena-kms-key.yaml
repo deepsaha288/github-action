@@ -1,0 +1,102 @@
+  # Input Parameters
+#   UserArn
+#   SSMKMSKeyArnName
+#
+# Import
+#   Role-CumRoleLambdaAccess
+#
+# Export
+#   KMS-CumAthenaQueryResults
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Athena Query Result
+Parameters:
+  UserArn:
+    Type: String
+    # Default: arn:aws:iam::661623416131:user/CumulusDev-AWScli-ProgAccess
+  SSMAthenaKMSKeySSEArnName:
+    Type: String
+    # Default: athena_kms_key_arn
+
+Resources:
+  CumAthenaKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Cum KMS Key-Athena
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-consolepolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserArn
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS:
+            - !Ref UserArn
+            #- Fn::ImportValue: Role-CumRoleLambdaAccess
+            #- arn:aws:iam::${AWS::AccountId}:user/chatrh2.api
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          Resource: "*"
+        - Sid: Allow access for Dome9 Permissions
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/LZ-Dome9-ReadOnly'
+          Action: 
+          - kms:DescribeKey
+          - kms:ListKeyPolicies
+          - kms:ListResourceTags
+          Resource: "*"
+        - Sid: Allow attachment of persistent resources
+          Effect: Allow
+          Principal:
+            AWS:
+            - !Ref UserArn
+            # - Fn::ImportValue: Role-CumRoleLambdaAccess
+            #- arn:aws:iam::${AWS::AccountId}:user/chatrh2.api
+          Action:
+          - kms:CreateGrant
+          - kms:ListGrants
+          - kms:RevokeGrant
+          Resource: "*"
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+
+  CumAthenaKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/Cum-kms-key-Athena
+      TargetKeyId:
+        Ref: CumAthenaKmsKey
+    DependsOn:
+      - CumAthenaKmsKey
+
+  SSMKMSKeyArnAthena:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMAthenaKMSKeySSEArnName
+      Description: "SSM Parameter for Athena KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumAthenaKmsKey,Arn]
+    DependsOn:
+      - CumAthenaKmsKey
+
+Outputs:
+  CumAthenaKmsKeyOutput:
+    Description: ARN of Cum-KMS-Key-Athena
+    Value: !GetAtt [CumAthenaKmsKey, Arn]
+    Export:
+      Name: !Sub KMS-CumAthenaKmsKey

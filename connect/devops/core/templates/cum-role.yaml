@@ -1,0 +1,170 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_CumRoleLambdaAccess
+#   Role_CumRoleDAXAccess
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for lambda and DAX access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  CumDaxAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: 
+            # To get access to dax and dynamodb
+            - dax:*
+            - dynamodb:*
+          Resource: "*"
+      Roles:
+        - Ref: "CumRoleLambdaAccess"
+        - Ref: "CumRoleDAXAccess"
+        - Ref: "CumEC2AccessRole"
+      ManagedPolicyName: CumDaxAccessPolicy
+
+  CumLambdaPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action:
+            - cloudwatch:GetMetricStatistics
+            - cloudwatch:DescribeAlarms
+            - application-autoscaling:*
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - sqs:*
+            - sns:*
+            - s3:*
+          Resource: "*"
+      Roles:
+        - Ref: "CumRoleLambdaAccess"
+        - Ref: "CumRoleDAXAccess"
+        - Ref: "CumEC2AccessRole"
+      ManagedPolicyName: CumLambdaPolicy 
+
+
+  CumPCAPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      Path: "/"
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PCAaccess
+          Effect: Allow
+          Action: sts:AssumeRole
+          Resource: 
+            - arn:aws:iam::267782611150:role/ProdPCARole
+            - arn:aws:iam::267782611150:role/NonProdPCARole
+      Roles:
+        - Ref: CumEC2AccessRole
+      ManagedPolicyName: CumPCAPolicy 
+
+
+
+  CumRoleLambdaAccess:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CumLambdaAccessRole
+
+  CumEC2AccessRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CumEC2AccessRole
+
+  CumRoleDAXAccess:
+    Type: "AWS::IAM::Role"
+    Properties:       
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - dax.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: CumRoleDAXAccess
+
+
+Outputs:
+  CumRoleLambdaAccess:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [CumRoleLambdaAccess,Arn]
+    Export:
+      Name: !Sub "Role-CumRoleLambdaAccess"
+
+  CumRoleDax:
+    Description: The ARN of Cumulus - Role - Dax
+    Value: !GetAtt [CumRoleDAXAccess,Arn]
+    Export:
+      Name: !Sub "Role-CumRoleDAXAccess"   
+
+  CumRoleEC2:
+    Description: The ARN of Cumulus - Role - EC2
+    Value: !GetAtt [CumEC2AccessRole,Arn]
+    Export:
+      Name: !Sub "Role-CumEC2AccessRole"   

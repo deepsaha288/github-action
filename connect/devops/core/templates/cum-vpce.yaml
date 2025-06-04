@@ -1,0 +1,260 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cumulus VPC Endpoints
+Parameters:
+  VpcId:
+    Type: String
+    # Default: vpc-0a0928150b4e2e1a0
+
+  SubnetIds:
+    Type: String
+    # Default: subnet-0a088394a06119214
+
+  RouteTableIds:
+    Type: String
+    # Default: rtb-0f8889a1a53082fb2
+
+  PrivateDnsEnabled:
+    Type: String
+    # Default: true
+
+  SSMKeySTSEndpoint:
+    Type: String
+    # Default: sts_url
+
+  AWSRegion:
+    Type: String
+    # Default: eu-central-1
+
+#***********************************#
+
+Resources:  
+# Cumulus - VPC Endpoints - KMS
+  CumVpceKms:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId
+      ServiceName:
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".kms"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','   
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+        - Fn::ImportValue: SG-CumSGSNPProcessor
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+# Cumulus - VPC Endpoints - SNS
+  CumVpceSns:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId 
+      ServiceName: 
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".sns"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+        - Fn::ImportValue: SG-CumSGSNPProcessor
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+# Cumulus - VPC Endpoints - SQS
+  CumVpceSqs:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId 
+      ServiceName:
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".sqs"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+        - Fn::ImportValue: SG-CumSGSNPProcessor
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+# Cumulus - VPC Endpoints - S3
+  #CumVpceS3:
+  #  Type: AWS::EC2::VPCEndpoint
+  #  Properties: 
+  #    VpcId: !Ref VpcId
+  #    ServiceName:
+  #      Fn::Join:
+  #      - ""
+  #      - - "com.amazonaws."
+  #        - Ref: AWSRegion
+  #        - ".s3"
+  #    VpcEndpointType: Gateway
+  #    RouteTableIds:
+  #      - Ref: RouteTableIds
+      
+# Cumulus - VPC Endpoints - DynamoDB
+  CumVpceDDB:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId
+      ServiceName:
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".dynamodb"
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - Ref: RouteTableIds
+
+# Cumulus - VPC Endpoints - API GW
+  CumVpceAPIGW:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId 
+      ServiceName: 
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".execute-api"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+        - Fn::ImportValue: SG-CumSGSNPProcessor
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled 
+
+# Cumulus - VPC Endpoints - Secrets Manager
+  CumVpceSecretManager:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId 
+      ServiceName: 
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".secretsmanager"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+# Cumulus - VPC Endpoints - sts
+  CumVpceSts:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      VpcId: !Ref VpcId
+      ServiceName:
+        Fn::Join:
+        - ""
+        - - "com.amazonaws."
+          - Ref: AWSRegion
+          - ".sts"
+      VpcEndpointType: Interface
+      SubnetIds:
+        Fn::Split:
+        - ','
+        - Ref: SubnetIds
+      SecurityGroupIds:
+        - Fn::ImportValue: SG-CumSGAppBroker
+        - Fn::ImportValue: SG-CumSGSNPProcessor
+      PrivateDnsEnabled: !Ref PrivateDnsEnabled
+
+  # SSM Parameter for STS URL 
+  STSurlSSM:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKeySTSEndpoint
+      Description: "SSM Parameter for STS URL"
+      Type: "String"
+      Value:
+        Fn::Join:
+        - ''
+        - - 'https://'
+          - !Select [1, !Split [':',!Select [0,!GetAtt [CumVpceSts, DnsEntries]]]]
+    DependsOn: 
+      - CumVpceSts
+      
+# Output Cumulus - VPC Endpoints - IDs
+Outputs:
+  CumVpceKmsOutput:
+    Description: The ID of Cumulus - VPC Endpoint - KMS
+    Value: !Ref "CumVpceKms"
+    Export:
+      Name: !Sub "VPCE-CumVpceKms"
+  CumVpceSnsOutput:
+    Description: The ID of Cumulus - VPC Endpoint - SNS
+    Value: !Ref "CumVpceSns"
+    Export:
+      Name: !Sub "VPCE-CumVpceSns"
+  CumVpceSqsOutput:
+    Description: The ID of Cumulus - VPC Endpoint - SQS
+    Value: !Ref "CumVpceSqs"
+    Export:
+      Name: !Sub "VPCE-CumVpceSqs"
+  CumVpceS3Output:
+    Description: The ID of Cumulus - VPC Endpoint - S3
+    Value: !Ref "CumVpceS3"
+    Export:
+      Name: !Sub "VPCE-CumVpceS3"
+  CumVpceDDBOutput:
+    Description: The ID of Cumulus - VPC Endpoint - DDB
+    Value: !Ref "CumVpceDDB" 
+    Export:
+      Name: !Sub "VPCE-CumVpceDDB"
+  CumVpceSecretManagerOutput:
+    Description: The ID of Cumulus - VPC Endpoint - Secret Manager
+    Value: !Ref "CumVpceSecretManager" 
+    Export:
+      Name: !Sub "VPCE-CumVpceSecretManager"
+  CumVpceSTSOutput:
+    Description: The ID of Cumulus - VPC Endpoint - STS
+    Value: !Ref "CumVpceSts"
+    Export:
+      Name: !Sub "VPCE-CumVpceSTS"
+  CumVpceStsURLOutput:
+    Description: The URL of Cumulus - VPC Endpoint - STS
+    Value: 
+      Fn::Join:
+      - ''
+      - - 'https://'
+        - !Select [1, !Split [':',!Select [0,!GetAtt [CumVpceSts, DnsEntries]]]]
+    Export:
+      Name: !Sub "STS-VPCE-URL"
+  CumVpceAPIGWOutput:
+    Description: The ID of Cumulus - VPC Endpoint - APIGW
+    Value: !Ref "CumVpceAPIGW"
+    Export:
+      Name: !Sub "VPCE-CumVpceAPIGW"
+  CumVpceAPIGWUrlOutput:
+    Description: The URL of Cumulus  - VPC Endpoint - APIGW
+    Value: 
+      Fn::Join:
+      - ''
+      - - 'https://'
+        - !Select [1, !Split [':',!Select [1,!GetAtt [CumVpceAPIGW, DnsEntries]]]]
+    Export:
+      Name: !Sub "APIGW-VPCE-URL"

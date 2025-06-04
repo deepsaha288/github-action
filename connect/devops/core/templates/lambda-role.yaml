@@ -1,0 +1,504 @@
+# Import 
+# ---None
+#
+# Export 
+#   Role_DiscoverLambdaRole
+#   Role_ClientConfigLambdaRole
+#   Role_KeyStoreCreateLambdaRole
+#   Role_KeyStoreDeleteLambdaRole
+#   Role_KeyStoreGetLambdaRole
+#   Role_DisplayMessageLambdaRole
+#   Role_ServerTimeLambdaRole
+#   Role_DiagnosticLogLambdaRole
+#   Role_IngestionLambdaRole
+#   Role_SNPMetadataLambdaRole
+#   Role_SNPReposLambdaRole
+#   Role_DiagnosticCodeLambdaRole
+#   Role_UpgradeConfigLambdaRole
+#   Role_GcConnectDiscoverLambdaRole
+#   Role_GcZeusDiscoverLambdaRole
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Roles and policies for Lambda access.
+Parameters:
+  VpcId:
+    Type: String
+  AWSRegion:
+    Type: String
+  PrivateDnsEnabled:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetIds:
+    Type: String
+
+Resources:
+  DiscoverLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DiscoverLambdaRole
+
+  ClientConfigLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: ClientConfigLambdaRole  
+
+  KeyStoreCreateLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: KeyStoreCreateLambdaRole  
+
+  KeyStoreDeleteLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBDeleteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: KeyStoreDeleteLambdaRole  
+
+  KeyStoreGetLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+  
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: KeyStoreGetLambdaRole 
+
+  DisplayMessageLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomDDBReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DisplayMessageLambdaRole     
+
+  ServerTimeLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+           
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: ServerTimeLambdaRole
+
+  DiagnosticLogLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAthenaWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DiagnosticLogLambdaRole
+
+  IngestionLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomS3WriteAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/MSK-IAM-Policy'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: IngestionLambdaRole
+
+
+  SNPMetadataLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SNPMetadataLambdaRole
+
+  SNPReposLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: SNPReposLambdaRole
+
+  DiagnosticCodeLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: DiagnosticCodeLambdaRole
+
+  UpgradeConfigLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: UpgradeConfigLambdaRole
+
+  GcConnectDiscoverLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: GcConnectDiscoverLambdaRole
+
+  GcZeusDiscoverLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSSignOnly'
+
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: GcZeusDiscoverLambdaRole
+
+  PeriodicSnapshotCdxHandoverRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      ManagedPolicyArns:
+        - !Sub 'arn:aws:iam::aws:policy/AWSXrayFullAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomEC2ENIPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomAPIGWInvokeAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomCloudWatchAccess'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomMSKWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSEncryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomKMSDecryptOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisReadOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomRedisWriteOnly'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CustomSQSAccessPolicy'
+        - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/MSK-IAM-Policy'
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      RoleName: PeriodicSnapshotCdxHandoverRole
+
+
+Outputs:
+  DiscoverLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DiscoverLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-DiscoverLambdaRole"
+
+  ClientConfigLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [ClientConfigLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-ClientConfigLambdaRole"
+
+  KeyStoreCreateLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [KeyStoreCreateLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-KeyStoreCreateLambdaRole"
+
+  KeyStoreDeleteLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [KeyStoreDeleteLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-KeyStoreDeleteLambdaRole"
+
+  KeyStoreGetLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [KeyStoreGetLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-KeyStoreGetLambdaRole"
+
+  DisplayMessageLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DisplayMessageLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-DisplayMessageLambdaRole"
+
+  ServerTimeLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [ServerTimeLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-ServerTimeLambdaRole"
+
+  DiagnosticLogLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DiagnosticLogLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-DiagnosticLogLambdaRole"
+
+  IngestionLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [IngestionLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-IngestionLambdaRole"
+
+  SNPMetadataLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [SNPMetadataLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-SNPMetadataLambdaRole"
+
+  SNPReposLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [SNPReposLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-SNPReposLambdaRole"
+
+  DiagnosticCodeLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [DiagnosticCodeLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-DiagnosticCodeLambdaRole"
+
+  UpgradeConfigLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [UpgradeConfigLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-UpgradeConfigLambdaRole"
+
+  GcConnectDiscoverLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [GcConnectDiscoverLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-GcConnectDiscoverLambdaRole"
+
+  GcZeusDiscoverLambdaRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [GcZeusDiscoverLambdaRole,Arn]
+    Export:
+      Name: !Sub "Role-GcZeusDiscoverLambdaRole"
+
+  PeriodicSnapshotCdxHandoverRole:
+    Description: The ARN of Cumulus Role for Lambda Executor
+    Value: !GetAtt [PeriodicSnapshotCdxHandoverRole,Arn]
+    Export:
+      Name: !Sub "Role-PeriodicSnapshotCdxHandoverRole"

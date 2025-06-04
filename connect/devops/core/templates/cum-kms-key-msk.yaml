@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum KMS Keys
+Parameters:
+  UserArn:
+    Type: String
+  SSMKMSKeySSEArnName:
+    Type: String
+  SSMKMSKeyDataArnName:
+    Type: String
+
+Resources: 
+  CumMSKKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: CMK KMS Key for MSK
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-consolepolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: 
+            - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:root'
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow access for Key Administrators
+          Effect: Allow
+          Principal:
+            AWS: 
+              - !Ref UserArn
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole'
+              - Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/CumulusAdminRW'
+          Action: 
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:TagResource
+          - kms:UntagResource
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          Resource: "*"
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::ImportValue: Role-CumEC2AccessRole
+              - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
+              # - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/kafka.amazonaws.com/AWSServiceRoleForKafka"              
+              - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/member.org.stacksets.cloudformation.amazonaws.com/AWSServiceRoleForCloudFormationStackSetsOrgMember"
+              - !Ref UserArn
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          Resource: "*"
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            Service: 
+              - !Sub "logs.${AWS::Region}.amazonaws.com"
+          Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          Resource: "*"
+        - Sid: Allow attachment of persistent resources
+          Effect: Allow
+          Principal:
+            AWS: 
+              - Fn::ImportValue: Role-CumRoleLambdaAccess
+              - Fn::ImportValue: Role-CumEC2AccessRole
+              - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
+              # - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/kafka.amazonaws.com/AWSServiceRoleForKafka"              
+              - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/member.org.stacksets.cloudformation.amazonaws.com/AWSServiceRoleForCloudFormationStackSetsOrgMember"
+              - !Ref UserArn 
+          Action:
+          - kms:CreateGrant
+          - kms:ListGrants
+          - kms:RevokeGrant
+          Resource: "*"
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+
+
+  CumMSKKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/Cum-MSK-key
+      TargetKeyId:
+        Ref: CumMSKKey
+    DependsOn:
+      - CumMSKKey
+
+
+  SSMKMSKeySSEArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeySSEArnName
+      Description: "SSM Parameter for KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumMSKKey,Arn] 
+    DependsOn: 
+      - CumMSKKey
+
+
+  SSMKMSKeyDataArn:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: !Ref SSMKMSKeyDataArnName
+      Description: "SSM Parameter for KMS Key ARN"
+      Type: "String"
+      Value: !GetAtt [CumMSKKey,Arn] 
+    DependsOn: 
+      - CumMSKKey
+
+
+Outputs:
+
+  CumMSKKeyOutput:
+    Description: ARN of Cum MSK Key
+    Value: !GetAtt [CumMSKKey, Arn] 
+    Export:
+      Name: !Sub KMS-CumMSKKey
+

@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cum Policies for CumAPIUserDeidentifier lambda
+Resources:
+  CumDeIDLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Policy for creating a test database
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 'lambda:InvokeFunction'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:lambda:'
+                - !Ref 'AWS::Region'
+                - ':'
+                - !Ref 'AWS::AccountId'
+                - ':function:CumAPIUserDeidentifier'
+      ManagedPolicyName: DeIdentificationLambdaExecutionPolicy

@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Export Values
+Parameters:
+  KmsARN:
+    Type: String 
+  ExportValueName:
+    Type: String
+
+
+Resources:
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - CumEC2AccessRole
+
+Outputs:
+  KmsKeyARNOutput:
+    Value: 
+      !Ref KmsARN
+    Export:
+      Name: !Ref ExportValueName
+
+
+

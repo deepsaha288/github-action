@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create SecurityGroup "InfoSys-IAAS-3rdParty"
+Parameters:
+  VpcId:
+    Type: String
+  JenkinsNodeCIDR:
+    Type: String
+
+Resources:
+  JanusSGInfoSysIAAS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group JanusSGInfoSysIAAS for Infosys IAAS Team 
+      GroupName: JanusSGInfoSysIAAS
+      Tags:
+        - Key: Name
+          Value: InfoSys-IAAS-3rdParty
+      VpcId: !Ref VpcId
+
+      SecurityGroupIngress:
+        -
+          Description: Allow NAT Pool for Infosys IAAS VPN Hairpin Connection
+          IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 10.161.60.0/24
+
+        -
+          Description: Allow 9092 from IAAS
+          IpProtocol: tcp
+          FromPort: 9092
+          ToPort: 9092
+          CidrIp:  10.82.176.0/24
+
+      SecurityGroupEgress:
+        -
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+
+  JanusSGInfoSysIAAS:
+    Description: The ID of JanusSGInfoSysIAAS
+    Value: !Ref JanusSGInfoSysIAAS
+    Export:
+      Name: !Sub SG-JanusSGInfoSysIAAS
