@@ -47,12 +47,6 @@ if __name__ == '__main__':
 
     try:
         print("\nCreating s3 Bucket "+args.s3BucketName)
-
-        # Added this condition because this is an artifact of the underlying S3 API that it doesn't accept us-east-1.
-        # To create an S3 bucket in us-east-1 you can just not specify any CreateBucketConfiguration
-        # if args.region == 'us-east-1':
-        #     s3.create_bucket(Bucket=args.s3BucketName)
-        # else:
         s3.create_bucket(Bucket=args.s3BucketName,CreateBucketConfiguration={'LocationConstraint': args.region})
         sleep(10)
         s3_client.put_bucket_encryption(

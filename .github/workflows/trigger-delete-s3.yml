@@ -1,4 +1,4 @@
-name: trigger-create-s3
+name: trigger-delete-s3
 
 on:
   workflow_dispatch:
@@ -12,22 +12,18 @@ on:
       AWS_REGION:
         description: 'AWS Region'
         required: true
-      KMS_ARN:
-        description: 'KMS ARN'
-        required: true
       LOG_LEVEL:
         description: 'Log level (default INFO)'
         required: false
         default: 'INFO'
 
 jobs:
-  call-create-s3:
-    uses: ./.github/workflows/create-s3-bucket.yml
+  call-delete-s3:
+    uses: ./.github/workflows/delete-s3-bucket.yml
     with:
       S3_BUCKET_NAME: ${{ github.event.inputs.S3_BUCKET_NAME }}
       STACK_NAME: ${{ github.event.inputs.STACK_NAME }}
       AWS_REGION: ${{ github.event.inputs.AWS_REGION }}
-      KMS_ARN: ${{ github.event.inputs.KMS_ARN }}
       LOG_LEVEL: ${{ github.event.inputs.LOG_LEVEL }}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

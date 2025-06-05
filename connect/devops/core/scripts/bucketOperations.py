@@ -40,10 +40,11 @@ def get_stack_status(cloudformation, stack_name):
             logging.info( "Stack creation is in progres... ")
             time.sleep(10)
         else:
-            print stack.stack_status
+            logging.error("Stack creation failed with below status: %s", stack.stack_status)
+            print % stack.stack_status
             logging.error("Stack creation failed with below status: %s", stack.stack_status)
             ret  = 1
-            raise OSError("Stack creation failed with below status: %s" stack.stack_status)
+            raise   OSError("Stack creation failed with below status: %s" % stack.stack_status)
             break
     
     return ret
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     parser.add_argument("--AWSRegion", dest="region", required=True, metavar="<AWSRegion>",
                         help="AWS Region")
     parser.add_argument("--logLevel", dest="logLevel", required=False, metavar="<LogLevel>",
-                       help="Logging level INFO|DEBUG|ERROR|WARNING")
+                        help="Logging level INFO|DEBUG|ERROR|WARNING")
 
     args = parser.parse_args()
     try:       
@@ -143,11 +144,6 @@ if __name__ == '__main__':
             for key in bucket.objects.all():
                 logging.info("Removing file [%s] from bucket [%s]", key.key, input_params['bucketName'])
                 key.delete()
-
-        
-        
-
-
 
     except Exception as exp:
         logging.error("Caught Exception %s", str(exp))
