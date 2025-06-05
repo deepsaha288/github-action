@@ -12,10 +12,6 @@ on:
       AWS_REGION:
         required: true
         type: string
-      LOG_LEVEL:
-        required: false
-        type: string
-        default: "INFO"
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -25,7 +21,6 @@ on:
 jobs:
   delete-s3:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,7 +31,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install boto3 pyyaml
+        run: pip install boto3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -50,5 +45,4 @@ jobs:
           python connect/devops/core/scripts/deleteS3Bucket.py \
             --s3BucketName "${{ inputs.S3_BUCKET_NAME }}" \
             --stackName "${{ inputs.STACK_NAME }}" \
-            --AWSRegion "${{ inputs.AWS_REGION }}" \
-            --logLevel "${{ inputs.LOG_LEVEL }}"
+            --AWSRegion "${{ inputs.AWS_REGION }}"
