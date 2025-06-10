@@ -1,0 +1,42 @@
+name: Base S3 Creator
+
+on:
+  workflow_call:
+    inputs:
+      S3_BUCKET_NAME:
+        required: true
+        type: string
+      STACK_NAME:
+        required: true
+        type: string
+      AWS_REGION:
+        required: true
+        type: string
+      KMS_ARN:
+        required: false
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  create-s3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.AWS_REGION }}
+
+      - name: Create S3 Bucket
+        run: |
+          aws s3api create-bucket \
+            --bucket "${{ inputs.S3_BUCKET_NAME }}" \
+            --region "${{ inputs.AWS_REGION }}" \
+            --create-bucket-configuration LocationConstraint=${{ inputs.AWS_REGION }}

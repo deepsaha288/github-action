@@ -1,0 +1,33 @@
+name: Select Env and Trigger S3 Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      ENV:
+        description: "Choose Environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - dev
+          - test
+          - stage
+      CONFIG_FILE:
+        description: "Select the trigger configuration file"
+        required: true
+        type: choice
+        options:
+          - cumulus-s3-bucket-configrution.yaml
+          - retina-s3-bucket-configrution.yaml
+
+jobs:
+  trigger-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call trigger config file
+        uses: ./.github/workflows/${{ inputs.CONFIG_FILE }}
+        with:
+          ENV: ${{ inputs.ENV }}
+        secrets:
+          AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_ACCESS_KEY_ID_{0}', inputs.ENV | upper)] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_SECRET_ACCESS_KEY_{0}', inputs.ENV | upper)] }}

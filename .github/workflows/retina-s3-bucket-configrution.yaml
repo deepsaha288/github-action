@@ -1,0 +1,29 @@
+name: Trigger Higher Environment S3 Creation
+
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - stage
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  run-s3:
+    uses: ./.github/workflows/s3-bucket-create.yaml
+    with:
+      S3_BUCKET_NAME: my-${{ inputs.ENV }}-bucket-higher
+      STACK_NAME: stack-${{ inputs.ENV }}
+      AWS_REGION: ap-south-1
+      KMS_ARN: arn:aws:kms:ap-south-1:123456789012:key/xxxx-xxxx
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
