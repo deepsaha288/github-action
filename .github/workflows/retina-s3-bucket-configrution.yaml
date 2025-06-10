@@ -1,4 +1,4 @@
-name: Trigger Higher Environment S3 Creation
+name: Trigger lower S3 Creation
 
 on:
   workflow_call:

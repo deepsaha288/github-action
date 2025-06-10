@@ -1,4 +1,4 @@
-name: Trigger S3 Creation
+name: Trigger higher S3 Creation
 
 on:
   workflow_call:
